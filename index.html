@@ -1,0 +1,416 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ぬのモン試作1号</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #191919;
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 15px 0 10px;
+      font-size: 27px;
+    }
+
+    .description {
+      color: #ccc;
+      margin-bottom: 25px;
+    }
+
+    .camera-area {
+      position: relative;
+      width: 100%;
+      max-width: 650px;
+      aspect-ratio: 4 / 3;
+      margin: 0 auto;
+      background: #292929;
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    video, canvas {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      inset: 0;
+    }
+
+    video {
+      object-fit: cover;
+    }
+
+    canvas {
+      pointer-events: none;
+    }
+
+    .buttons {
+      margin: 25px 0;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 16px 28px;
+      border: none;
+      border-radius: 15px;
+      background: #f0e3c7;
+      color: #222;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    #stopButton {
+      background: #555;
+      color: white;
+    }
+
+    #status {
+      margin: 20px auto;
+      color: #ffe58a;
+      font-size: 16px;
+      line-height: 1.7;
+      max-width: 600px;
+      overflow-wrap: anywhere;
+    }
+
+    .note {
+      margin-top: 30px;
+      color: #999;
+      font-size: 13px;
+      line-height: 1.8;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>ぬのモン試作1号</h1>
+
+  <p class="description">
+    フェルトモンスターをカメラに映してみよう！
+  </p>
+
+  <div class="camera-area">
+
+    <video
+      id="camera"
+      autoplay
+      muted
+      playsinline
+    ></video>
+
+    <canvas id="overlay"></canvas>
+
+  </div>
+
+  <div class="buttons">
+
+    <button id="startButton">
+      カメラを起動
+    </button>
+
+    <button id="stopButton" disabled>
+      カメラを停止
+    </button>
+
+  </div>
+
+  <div id="status">
+    カメラ準備完了。ボタンを押してね。
+  </div>
+
+  <p class="note">
+    ぬのモン プロトタイプ Ver.1.0<br>
+    カメラ・アニメーション動作テスト
+  </p>
+
+
+  <script>
+
+    // =========================
+    // 1. HTML要素の取得
+    // =========================
+
+    const video = document.getElementById("camera");
+    const canvas = document.getElementById("overlay");
+    const ctx = canvas.getContext("2d");
+
+    const startButton = document.getElementById("startButton");
+    const stopButton = document.getElementById("stopButton");
+    const status = document.getElementById("status");
+
+    let cameraStream = null;
+    let animationId = null;
+    let startTime = 0;
+
+
+    // =========================
+    // 2. カメラの起動
+    // =========================
+
+    async function startCamera() {
+
+      if (!navigator.mediaDevices ||
+          !navigator.mediaDevices.getUserMedia) {
+
+        status.textContent =
+          "この環境ではカメラを利用できません。HTTPSのページで開いてください。";
+
+        return;
+      }
+
+      startButton.disabled = true;
+      status.textContent = "カメラを起動しています...";
+
+      try {
+
+        // 背面カメラを優先
+        try {
+
+          cameraStream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: { ideal: "environment" }
+            },
+            audio: false
+          });
+
+        } catch (firstError) {
+
+          // 背面カメラが使えない場合は通常カメラ
+          cameraStream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false
+          });
+
+        }
+
+        video.srcObject = cameraStream;
+
+        await video.play();
+
+        canvas.width = video.videoWidth || 640;
+        canvas.height = video.videoHeight || 480;
+
+        startButton.disabled = true;
+        stopButton.disabled = false;
+
+        status.textContent =
+          "カメラ起動成功！ぬのモンを映してみてね。";
+
+        startAnimation();
+
+      } catch (error) {
+
+        console.error(error);
+
+        startButton.disabled = false;
+
+        if (error.name === "NotAllowedError") {
+
+          status.textContent =
+            "カメラの使用が許可されていません。ブラウザの設定を確認してください。";
+
+        } else if (error.name === "NotFoundError") {
+
+          status.textContent =
+            "カメラが見つかりませんでした。";
+
+        } else {
+
+          status.textContent =
+            "カメラを起動できませんでした：" + error.message;
+
+        }
+
+      }
+
+    }
+
+
+    // =========================
+    // 3. カメラの停止
+    // =========================
+
+    function stopCamera() {
+
+      if (cameraStream) {
+
+        cameraStream.getTracks().forEach(track => {
+          track.stop();
+        });
+
+        cameraStream = null;
+      }
+
+      video.srcObject = null;
+
+      if (animationId !== null) {
+
+        cancelAnimationFrame(animationId);
+        animationId = null;
+
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      startButton.disabled = false;
+      stopButton.disabled = true;
+
+      status.textContent = "カメラを停止しました。";
+
+    }
+
+
+    // =========================
+    // 4. デジタルモンスターの描画
+    // =========================
+
+    function drawMonster(time) {
+
+      const width = canvas.width;
+      const height = canvas.height;
+
+      ctx.clearRect(0, 0, width, height);
+
+      const t = time / 1000;
+
+      // モンスターの浮遊運動
+      const floatY = Math.sin(t * 2.5) * 12;
+
+      // 左右の揺れ
+      const rotate = Math.sin(t * 1.5) * 0.08;
+
+      const centerX = width / 2;
+      const centerY = height / 2 + floatY;
+
+      const size = Math.min(width, height) * 0.28;
+
+      ctx.save();
+
+      ctx.translate(centerX, centerY);
+      ctx.rotate(rotate);
+
+      // 体
+      ctx.fillStyle = "#eee5d1";
+      ctx.beginPath();
+
+      ctx.moveTo(-size * 0.8, -size * 0.8);
+
+      ctx.quadraticCurveTo(
+        -size * 0.9, -size * 1.6,
+        0, -size * 1.5
+      );
+
+      ctx.quadraticCurveTo(
+        size * 0.9, -size * 1.6,
+        size * 0.8, -size * 0.8
+      );
+
+      // 足の形
+      ctx.lineTo(size * 0.8, size * 0.3);
+
+      ctx.quadraticCurveTo(
+        size * 0.9, size * 0.8,
+        size * 0.5, size * 0.5
+      );
+
+      ctx.quadraticCurveTo(
+        size * 0.3, size * 1.0,
+        0, size * 0.55
+      );
+
+      ctx.quadraticCurveTo(
+        -size * 0.3, size * 1.0,
+        -size * 0.5, size * 0.5
+      );
+
+      ctx.quadraticCurveTo(
+        -size * 0.9, size * 0.8,
+        -size * 0.8, size * 0.3
+      );
+
+      ctx.closePath();
+      ctx.fill();
+
+      // 目の周り
+      ctx.fillStyle = "white";
+
+      ctx.beginPath();
+      ctx.arc(0, -size * 0.65, size * 0.24, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 黒目
+      ctx.fillStyle = "#111";
+
+      ctx.beginPath();
+      ctx.arc(0, -size * 0.65, size * 0.16, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+
+    }
+
+
+    // =========================
+    // 5. アニメーション
+    // =========================
+
+    function animate(time) {
+
+      drawMonster(time);
+
+      animationId = requestAnimationFrame(animate);
+
+    }
+
+    function startAnimation() {
+
+      if (animationId !== null) {
+        cancelAnimationFrame(animationId);
+      }
+
+      animationId = requestAnimationFrame(animate);
+
+    }
+
+
+    // =========================
+    // 6. ボタン操作
+    // =========================
+
+    startButton.addEventListener("click", startCamera);
+
+    stopButton.addEventListener("click", stopCamera);
+
+
+    // =========================
+    // 7. ページ終了時の処理
+    // =========================
+
+    window.addEventListener("pagehide", stopCamera);
+
+  </script>
+
+</body>
+</html>
