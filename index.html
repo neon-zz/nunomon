@@ -163,37 +163,28 @@
     // 2. 色の判定
     // ==========================
 
-    function isMonsterColor(r, g, b) {
+   function isMonsterColor(r, g, b) {
 
-      const max = Math.max(r, g, b);
-      const min = Math.min(r, g, b);
+  const brightness = (r + g + b) / 3;
 
-      const delta = max - min;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
 
-      if (max < 55 || delta < 30) {
-        return false;
-      }
+  const saturation = max === 0
+    ? 0
+    : (max - min) / max;
 
-      let hue = 0;
-
-      if (max === r) {
-        hue = 60 * (((g - b) / delta) % 6);
-      } else if (max === g) {
-        hue = 60 * ((b - r) / delta + 2);
-      } else {
-        hue = 60 * ((r - g) / delta + 4);
-      }
-
-      if (hue < 0) hue += 360;
-
-      const saturation = delta / max;
-
-      // 赤・ピンク系を検出
-      const correctHue =
-        hue >= 300 || hue <= 18;
-
-      return correctHue && saturation > 0.30;
-    }
+  // 明るいクリーム色・白系を検出
+  return (
+    brightness > 145 &&
+    r > 145 &&
+    g > 135 &&
+    b > 105 &&
+    r >= g &&
+    g >= b - 5 &&
+    saturation < 0.38
+  );
+}
 
     // ==========================
     // 3. カメラ画像から色を抽出
