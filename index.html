@@ -3,911 +3,393 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ぬのモン - 輪郭認識試作</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ぬのモン STEP 8</title>
 <style>
-* { box-sizing: border-box; }
-[hidden] { display: none !important; }
-
-body {
-  margin: 0;
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  background: #171717;
-  color: white;
-  font-family: system-ui, sans-serif;
-  padding: 16px;
-}
-.app { width: min(100%, 520px); text-align: center; }
-h1 { font-size: 1.5rem; margin-bottom: 5px; }
-.sub { color: #bbb; margin-bottom: 20px; }
-
-.stage {
-  min-height: 360px;
-  display: grid;
-  place-items: center;
-  background: radial-gradient(ellipse at center, #383838, #202020 70%);
-  border: 1px solid #555;
-  border-radius: 22px;
-  overflow: hidden;
-  padding: 18px;
-}
-.monster {
-  position: relative;
-  width: min(82vw, 340px);
-  aspect-ratio: 921 / 936;
-  animation: float 2.6s ease-in-out infinite;
-  transform-origin: 50% 80%;
-}
-.monster.still { animation: none; }
-.part {
-  position: absolute;
-  height: auto;
-  user-select: none;
-  pointer-events: none;
-}
-.body { inset: 0; width: 100%; }
-.eye {
-  width: 25.5%;
-  top: 27%;
-  transform-origin: center 55%;
-  animation: blink 4.8s infinite;
-}
-.eye.left { left: 24%; }
-.eye.right { left: 55%; animation-delay: .12s; }
-.mouth {
-  width: 36%;
-  left: 35%;
-  top: 54%;
-  transform-origin: center 15%;
-  animation: mouthMove 3.1s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%,100% { transform: translateY(0) rotate(0); }
-  50% { transform: translateY(-9px) rotate(-1deg); }
-}
-@keyframes blink {
-  0%,43%,47%,100% { transform: scaleY(1); }
-  45% { transform: scaleY(.12); }
-}
-@keyframes mouthMove {
-  0%,100% { transform: translateY(0) scaleY(1); }
-  50% { transform: translateY(3px) scaleY(.94); }
-}
-.expression-surprised .eye { animation-name: surprisedEyes; }
-.expression-surprised .mouth { animation-name: surprisedMouth; }
-@keyframes surprisedEyes {
-  0%,100% { transform: scaleY(1.2); }
-  45% { transform: scaleY(.8); }
-}
-@keyframes surprisedMouth {
-  0%,100% { transform: scaleY(1.12); }
-  50% { transform: scaleY(1.2); }
-}
-.expression-happy .eye { animation-name: happyEyes; }
-.expression-happy .mouth { animation-name: happyMouth; }
-@keyframes happyEyes {
-  0%,100% { transform: scaleY(.65); }
-  45% { transform: scaleY(.12); }
-}
-@keyframes happyMouth {
-  0%,100% { transform: scaleY(1.08); }
-  50% { transform: translateY(4px) scaleY(.9); }
-}
-.expression-sleepy .eye { animation-name: sleepyEyes; }
-.expression-sleepy .mouth { animation-name: sleepyMouth; }
-@keyframes sleepyEyes {
-  0%,100% { transform: scaleY(.35); }
-  50% { transform: scaleY(.25); }
-}
-@keyframes sleepyMouth {
-  0%,100% { transform: scaleY(.8); }
-  50% { transform: translateY(3px) scaleY(.7); }
-}
-.expression-sad .eye { animation-name: sadEyes; }
-.expression-sad .mouth { animation-name: sadMouth; }
-@keyframes sadEyes {
-  0%,100% { transform: translateY(3px) scaleY(.8); }
-  50% { transform: translateY(5px) scaleY(.7); }
-}
-@keyframes sadMouth {
-  0%,100% { transform: translateY(5px) scaleY(.7); }
-  50% { transform: translateY(7px) scaleY(.65); }
-}
-.monster.still .eye,
-.monster.still .mouth { animation: none !important; }
-.monster.wiggling { animation: wiggle .65s ease-in-out; }
-@keyframes wiggle {
-  0%,100% { transform: rotate(0); }
-  20% { transform: rotate(-7deg); }
-  40% { transform: rotate(7deg); }
-  60% { transform: rotate(-5deg); }
-  80% { transform: rotate(4deg); }
-}
-
-/* 感情演出 */
-.effect-layer {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: visible;
-}
-.effect {
-  position: absolute;
-  display: block;
-  font-weight: 900;
-  line-height: 1;
-  opacity: 0;
-  user-select: none;
-  filter: drop-shadow(0 3px 3px rgba(0,0,0,.35));
-}
-.effect.show { animation: effectPop 1.45s ease-out both; }
-@keyframes effectPop {
-  0% { opacity: 0; transform: translateY(12px) scale(.35) rotate(-12deg); }
-  18% { opacity: 1; transform: translateY(-3px) scale(1.18) rotate(8deg); }
-  38% { opacity: 1; transform: translateY(-7px) scale(1) rotate(-5deg); }
-  100% { opacity: 0; transform: translateY(-34px) scale(.8) rotate(10deg); }
-}
-.effect-surprise {
-  top: 3%; right: 2%;
-  font-size: clamp(34px, 10vw, 48px);
-  color: #ffe16b;
-}
-.effect-happy-left { top: 25%; left: -4%; font-size: 37px; color: #ffe66d; }
-.effect-happy-right { top: 18%; right: -5%; font-size: 42px; color: #a9eaff; }
-.effect-sleepy { top: 0%; right: 1%; font-size: 38px; color: #b9c7ff; }
-.effect-sad { top: 34%; left: 5%; font-size: 42px; color: #80d8ff; }
-.effect-normal { top: 5%; left: 4%; font-size: 26px; color: #f5d6ad; }
-
-/* カメラ・撮影 */
-.camera-panel {
-  margin-top: 20px;
-  padding: 15px;
-  background: #292929;
-  border: 1px solid #555;
-  border-radius: 18px;
-}
-.camera-panel h2 { font-size: 1.15rem; margin: 0 0 8px; }
-.camera-help {
-  color: #bbb;
-  font-size: .83rem;
-  line-height: 1.55;
-}
-.camera-view {
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  min-height: 210px;
-  background: #111;
-  border-radius: 12px;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #555;
-}
-.camera-view video {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-.camera-placeholder { color: #999; padding: 18px; }
-
-.photo-area {
-  position: relative;
-  width: 100%;
-  margin-top: 12px;
-  background: #111;
-  border-radius: 12px;
-  overflow: hidden;
-  line-height: 0;
-  touch-action: manipulation;
-}
-.photo-area img {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-.photo-area canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-.camera-buttons, .controls {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 9px;
-  margin-top: 12px;
-}
-button {
-  border: 0;
-  border-radius: 999px;
-  padding: 11px 15px;
-  font-size: .9rem;
-  font-weight: 650;
-  cursor: pointer;
-  background: #f4e9e1;
-  color: #302722;
-}
-button.secondary {
-  background: #454545;
-  color: white;
-  border: 1px solid #777;
-}
-button.active { background: #d9b7ff; color: #30203f; }
-button:disabled { opacity: .4; cursor: not-allowed; }
-button:active { transform: scale(.96); }
-.note, .camera-status {
-  color: #bbb;
-  font-size: .85rem;
-  line-height: 1.6;
-  margin-top: 12px;
-  overflow-wrap: anywhere;
-}
-.camera-status { color: #d8c4ff; }
-
-.recognition-result {
-  color: #a9edb5;
-  font-size: .9rem;
-  line-height: 1.5;
-  margin-top: 10px;
-}
-.recognition-hint {
-  color: #ffe19a;
-  font-size: .83rem;
-  line-height: 1.5;
-}
-@media (max-width: 600px) {
-  body { padding: 12px; }
-  .stage { min-height: 310px; padding: 12px; }
-  .monster { width: min(78vw, 320px); }
-  .camera-panel { padding: 12px; }
-  button { padding: 10px 12px; }
-}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;padding:14px;background:#171717;color:white;font-family:system-ui,sans-serif}
+.app{width:min(100%,560px);margin:auto;text-align:center}
+h1{margin:8px 0}.sub,.help,.status{color:#bbb;font-size:.88rem;line-height:1.6}
+.panel{background:#292929;border:1px solid #555;border-radius:18px;padding:14px;margin:16px 0}
+.stage{height:350px;display:grid;place-items:center;background:radial-gradient(#444,#202020);border-radius:16px;overflow:hidden}
+.monster{position:relative;width:min(78vw,300px);aspect-ratio:921/936;animation:float 2.6s ease-in-out infinite}
+.monster img{position:absolute;height:auto;pointer-events:none}
+.body{inset:0;width:100%}
+.eye{width:25.5%;top:27%;animation:blink 4.8s infinite}
+.eye.left{left:24%}.eye.right{left:55%}
+.mouth{width:36%;left:35%;top:54%;animation:mouth 3s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-8px) rotate(-1deg)}}
+@keyframes blink{0%,43%,47%,100%{transform:scaleY(1)}45%{transform:scaleY(.12)}}
+@keyframes mouth{50%{transform:translateY(3px) scaleY(.94)}}
+.monster.still,.monster.still img{animation:none!important}
+button{border:0;border-radius:30px;padding:11px 14px;margin:4px;background:#f4e9e1;color:#302722;font-weight:650;cursor:pointer}
+button.secondary{background:#454545;color:white;border:1px solid #777}
+button.active{background:#d9b7ff;color:#30203f}
+button:disabled{opacity:.4}
+.camera-view{width:100%;aspect-ratio:4/3;min-height:200px;background:#111;border-radius:12px;overflow:hidden;display:grid;place-items:center}
+video{width:100%;height:100%;object-fit:contain}
+.photo-area{position:relative;width:100%;margin-top:12px;line-height:0;background:#111;border-radius:12px;overflow:hidden}
+.photo-area img{display:block;width:100%;height:auto;cursor:crosshair;touch-action:manipulation}
+.photo-area canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.buttons{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;margin-top:10px}
+.part-buttons{display:flex;flex-wrap:wrap;justify-content:center;gap:4px}
+.result{color:#a9edb5;line-height:1.6;font-size:.9rem}
+.marker{font-size:12px;font-weight:bold}
 </style>
 </head>
-
 <body>
 <main class="app">
-<h1>ぬのモン</h1>
-<p class="sub">クリーム色の子・輪郭認識試作</p>
+<h1>🧵 ぬのモン</h1>
+<p class="sub">STEP 8：顔パーツ認識・位置登録</p>
 
-<section class="stage">
-  <div class="monster" id="monster">
-    <img class="part body" src="body.png" alt="">
-    <img class="part eye left" src="eye_left.png" alt="">
-    <img class="part eye right" src="eye_right.png" alt="">
-    <img class="part mouth" src="mouth.png" alt="">
-    <div class="effect-layer" id="effectLayer"></div>
-  </div>
+<section class="panel">
+<h2>デジタルモンスター</h2>
+<div class="stage">
+ <div class="monster" id="monster">
+  <img class="body" src="body.png" alt="">
+  <img class="eye left" id="digitalLeft" src="eye_left.png" alt="">
+  <img class="eye right" id="digitalRight" src="eye_right.png" alt="">
+  <img class="mouth" id="digitalMouth" src="mouth.png" alt="">
+ </div>
+</div>
+<p class="help">写真から登録したパーツ位置がここに反映されるよ。</p>
+<div class="buttons">
+ <button id="resetDigital" class="secondary">元の位置に戻す</button>
+ <button id="toggleMotion">動きを止める</button>
+</div>
 </section>
 
-<section class="camera-panel">
-  <h2>📷 フェルトのモンスターを撮影</h2>
-  <p class="camera-help">
-    モンスターを背景の上に置いて撮影してね。
-  </p>
+<section class="panel">
+<h2>📷 モンスターを撮影</h2>
+<p class="help">フェルトを背景の上に置いて撮影してね。</p>
+<div class="camera-view">
+ <span id="placeholder">カメラを起動してね</span>
+ <video id="video" autoplay muted playsinline hidden></video>
+</div>
+<div class="buttons">
+ <button id="start">カメラを起動</button>
+ <button id="shoot" disabled>撮影する</button>
+ <button id="retake" class="secondary" hidden>撮り直す</button>
+ <button id="stop" class="secondary" disabled>終了</button>
+</div>
+<p class="status" id="cameraStatus">カメラは停止中だよ。</p>
 
-  <div class="camera-view" id="cameraView">
-    <div class="camera-placeholder" id="cameraPlaceholder">
-      「カメラを起動」を押してね
-    </div>
-    <video id="cameraVideo" autoplay muted playsinline hidden></video>
-  </div>
-
-  <div class="camera-buttons">
-    <button id="startCamera">カメラを起動</button>
-    <button id="takePhoto" disabled>撮影する</button>
-    <button id="retakePhoto" class="secondary" hidden>撮り直す</button>
-    <button id="stopCamera" class="secondary" disabled>カメラを終了</button>
-  </div>
-
-  <p class="camera-status" id="cameraStatus">
-    カメラはまだ起動していないよ。
-  </p>
-
-  <div class="photo-area" id="photoArea" hidden>
-    <img id="capturedImage" alt="撮影したフェルトモンスター">
-    <canvas id="outlineCanvas"></canvas>
-  </div>
-
-  <p class="recognition-hint" id="recognitionHint" hidden>
-    写真の中のモンスター以外の背景をタップしてね。
-  </p>
-
-  <div class="camera-buttons">
-    <button id="recognizeButton" disabled>輪郭を認識する</button>
-    <button id="clearOutline" class="secondary" hidden>輪郭を消す</button>
-  </div>
-
-  <p class="recognition-result" id="recognitionResult"></p>
-  <canvas id="photoCanvas" hidden></canvas>
+<div class="photo-area" id="photoArea" hidden>
+ <img id="photo" alt="撮影写真">
+ <canvas id="overlay"></canvas>
+</div>
+<p class="help" id="photoHelp" hidden>まず写真の背景をタップして、モンスターの輪郭を認識してね。</p>
+<div class="buttons">
+ <button id="recognize" disabled>輪郭を認識する</button>
+ <button id="clear" class="secondary" hidden>輪郭を消す</button>
+</div>
+<p class="result" id="outlineResult"></p>
+<canvas id="work" hidden></canvas>
 </section>
 
-<div class="controls" id="expressions">
-  <button class="active" data-expression="normal">😊 いつもの顔</button>
-  <button data-expression="surprised">😲 びっくり</button>
-  <button data-expression="happy">😄 にっこり</button>
-  <button data-expression="sleepy">😴 ねむい</button>
-  <button data-expression="sad">🥺 しょんぼり</button>
+<section class="panel">
+<h2>👀 顔パーツを登録</h2>
+<p class="help">登録したいパーツを選んでから、写真の上の該当する場所をタップしてね。</p>
+<div class="part-buttons">
+ <button data-part="left" class="active">左目</button>
+ <button data-part="right">右目</button>
+ <button data-part="mouth">口</button>
 </div>
-
-<div class="controls">
-  <button id="auto">おまかせ OFF</button>
-  <button id="toggle">動きを止める</button>
-  <button class="secondary" id="wiggle">ぷるぷる！</button>
+<p class="status" id="partStatus">左目を選択中。写真の左目をタップしてね。</p>
+<div class="buttons">
+ <button id="apply" disabled>デジタルモンスターに反映</button>
+ <button id="resetParts" class="secondary">パーツ位置をリセット</button>
 </div>
-<p class="note" id="note">好きな表情を選んでみよう！</p>
+<p class="result" id="partResult">まだパーツは登録されていないよ。</p>
+</section>
 </main>
 
 <script>
-// 表情とアニメーション
-const monster = document.getElementById("monster");
-const toggle = document.getElementById("toggle");
-const wiggle = document.getElementById("wiggle");
-const autoButton = document.getElementById("auto");
-const note = document.getElementById("note");
-const effectLayer = document.getElementById("effectLayer");
-const buttons = document.querySelectorAll("[data-expression]");
+const $=id=>document.getElementById(id);
+const video=$("video"),photo=$("photo"),overlay=$("overlay");
+const photoArea=$("photoArea"),cameraStatus=$("cameraStatus");
+const outlineResult=$("outlineResult"),partResult=$("partResult");
+let stream=null,backgroundPoint=null,monsterBounds=null;
+let currentPart="left";
+let points={left:null,right:null,mouth:null};
+let motion=true;
 
-const expressions = {
-  normal: {
-    message: "いつもの顔だよ！",
-    effects: [{ text: "ぷるん", className: "effect-normal" }]
-  },
-  surprised: {
-    message: "びっくりした！",
-    effects: [
-      { text: "!?", className: "effect-surprise" },
-      { text: "ぴょこっ", className: "effect-normal" }
-    ]
-  },
-  happy: {
-    message: "ごきげんだよ！",
-    effects: [
-      { text: "✦", className: "effect-happy-left" },
-      { text: "✧", className: "effect-happy-right" },
-      { text: "キラキラ", className: "effect-normal" }
-    ]
-  },
-  sleepy: {
-    message: "もう眠たいなぁ……",
-    effects: [{ text: "Zzz", className: "effect-sleepy" }]
-  },
-  sad: {
-    message: "ちょっと元気がないみたい……",
-    effects: [
-      { text: "💧", className: "effect-sad" },
-      { text: "しくしく", className: "effect-normal" }
-    ]
-  }
+const defaults={
+ left:{x:.37,y:.30},right:{x:.68,y:.30},mouth:{x:.53,y:.57}
 };
 
-const expressionNames = Object.keys(expressions);
-let autoMode = false;
-let autoTimer = null;
-let wiggleTimer = null;
-let effectTimer = null;
-
-function showEffects(name) {
-  clearTimeout(effectTimer);
-  effectLayer.innerHTML = "";
-  expressions[name].effects.forEach(item => {
-    const element = document.createElement("span");
-    element.className = "effect " + item.className;
-    element.textContent = item.text;
-    effectLayer.appendChild(element);
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => element.classList.add("show"));
-    });
+function stopTracks(){
+ if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
+}
+async function startCamera(){
+ if(!navigator.mediaDevices?.getUserMedia){
+  cameraStatus.textContent="カメラにはHTTPSのページからアクセスしてね。";return;
+ }
+ $("start").disabled=true;
+ cameraStatus.textContent="カメラを起動中……";
+ try{
+  try{
+   stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:"environment"}}});
+  }catch(e){
+   stream=await navigator.mediaDevices.getUserMedia({audio:false,video:true});
+  }
+  video.srcObject=stream;video.hidden=false;$("placeholder").hidden=true;
+  await new Promise((resolve,reject)=>{
+   if(video.readyState>=1&&video.videoWidth){resolve();return}
+   video.onloadedmetadata=resolve;
+   setTimeout(()=>reject(new Error("timeout")),10000);
   });
-  effectTimer = setTimeout(() => effectLayer.innerHTML = "", 1650);
+  await video.play();
+  $("shoot").disabled=false;$("stop").disabled=false;
+  cameraStatus.textContent="カメラ起動成功！モンスターを映してね。";
+ }catch(e){
+  stopTracks();video.srcObject=null;video.hidden=true;
+  $("placeholder").hidden=false;$("start").disabled=false;
+  cameraStatus.textContent="起動できなかったよ。カメラの使用許可を確認してね。";
+ }
+}
+function stopCamera(){
+ stopTracks();video.pause();video.srcObject=null;video.hidden=true;
+ $("placeholder").hidden=false;
+ $("start").disabled=false;$("shoot").disabled=true;$("stop").disabled=true;
+ cameraStatus.textContent="カメラを終了したよ。";
+}
+function shoot(){
+ if(!stream||!video.videoWidth)return;
+ const c=$("work"),ctx=c.getContext("2d");
+ c.width=video.videoWidth;c.height=video.videoHeight;
+ ctx.drawImage(video,0,0,c.width,c.height);
+ photo.onload=()=>{
+  stopTracks();video.pause();video.srcObject=null;video.hidden=true;
+  photoArea.hidden=false;
+  overlay.width=photo.naturalWidth;overlay.height=photo.naturalHeight;
+  $("photoHelp").hidden=false;
+  $("start").disabled=false;$("shoot").disabled=true;
+  $("stop").disabled=true;$("retake").hidden=false;
+  $("recognize").disabled=false;
+  cameraStatus.textContent="撮影できたよ！背景をタップしてね。";
+  clearRecognition();
+ };
+ photo.src=c.toDataURL("image/jpeg",.92);
+}
+function clearRecognition(){
+ backgroundPoint=null;monsterBounds=null;
+ overlay.getContext("2d").clearRect(0,0,overlay.width,overlay.height);
+ outlineResult.textContent="";
+ $("clear").hidden=true;
+ $("apply").disabled=true;
+ points={left:null,right:null,mouth:null};
+ updatePartResult();
+}
+async function retake(){
+ photoArea.hidden=true;$("photoHelp").hidden=true;
+ clearRecognition();$("retake").hidden=true;
+ await startCamera();
 }
 
-function changeExpression(name) {
-  monster.classList.remove(
-    "expression-surprised", "expression-happy",
-    "expression-sleepy", "expression-sad"
-  );
-  if (name !== "normal") monster.classList.add("expression-" + name);
-  buttons.forEach(button => {
-    button.classList.toggle("active", button.dataset.expression === name);
-  });
-  note.textContent = expressions[name].message;
-  showEffects(name);
-}
-
-buttons.forEach(button => {
-  button.addEventListener("click", () => {
-    stopAuto();
-    changeExpression(button.dataset.expression);
-  });
+// 背景の指定
+photo.addEventListener("click",e=>{
+ const r=photo.getBoundingClientRect();
+ const x=(e.clientX-r.left)/r.width*photo.naturalWidth;
+ const y=(e.clientY-r.top)/r.height*photo.naturalHeight;
+ if(monsterBounds){
+  if(x<monsterBounds.minX||x>monsterBounds.maxX||y<monsterBounds.minY||y>monsterBounds.maxY){
+   backgroundPoint={x,y};
+   outlineResult.textContent="背景位置を変更したよ。もう一度輪郭認識してね。";
+   return;
+  }
+  if(!monsterBounds)return;
+  registerPart(x,y);return;
+ }
+ backgroundPoint={x,y};
+ const ctx=overlay.getContext("2d");
+ ctx.clearRect(0,0,overlay.width,overlay.height);
+ ctx.beginPath();ctx.arc(x,y,10,0,Math.PI*2);
+ ctx.strokeStyle="#ffe05a";ctx.lineWidth=4;ctx.stroke();
+ outlineResult.textContent="背景を指定したよ。「輪郭を認識する」を押してね。";
 });
 
-function startAuto() {
-  if (autoMode) return;
-  autoMode = true;
-  autoButton.textContent = "おまかせ ON";
-  autoButton.classList.add("active");
-  note.textContent = "自由気ままに遊んでいるよ！";
-  scheduleAction();
-}
-function stopAuto() {
-  autoMode = false;
-  clearTimeout(autoTimer);
-  clearTimeout(wiggleTimer);
-  monster.classList.remove("wiggling");
-  autoButton.textContent = "おまかせ OFF";
-  autoButton.classList.remove("active");
-}
-function scheduleAction() {
-  clearTimeout(autoTimer);
-  if (!autoMode) return;
-  autoTimer = setTimeout(() => {
-    if (!autoMode) return;
-    const selected = expressionNames[
-      Math.floor(Math.random() * expressionNames.length)
-    ];
-    changeExpression(selected);
-    if (Math.random() < .25) playWiggle();
-    scheduleAction();
-  }, 3000 + Math.random() * 3000);
-}
-autoButton.addEventListener("click", () => {
-  if (autoMode) {
-    stopAuto();
-    note.textContent = "おまかせを終了したよ！";
-  } else {
-    startAuto();
+// 輪郭認識：背景からつながった同系色を除外
+function recognize(){
+ if(!backgroundPoint){outlineResult.textContent="先に写真の背景をタップしてね。";return}
+ const w=photo.naturalWidth,h=photo.naturalHeight;
+ const scale=Math.min(1,480/w),sw=Math.round(w*scale),sh=Math.round(h*scale);
+ const c=$("work");c.width=sw;c.height=sh;
+ const ctx=c.getContext("2d",{willReadFrequently:true});
+ ctx.drawImage(photo,0,0,sw,sh);
+ const data=ctx.getImageData(0,0,sw,sh).data;
+ const total=sw*sh,visited=new Uint8Array(total);
+ const sx=Math.max(0,Math.min(sw-1,Math.floor(backgroundPoint.x*scale)));
+ const sy=Math.max(0,Math.min(sh-1,Math.floor(backgroundPoint.y*scale)));
+ const si=(sy*sw+sx)*4,br=data[si],bg=data[si+1],bb=data[si+2];
+ const queue=new Int32Array(total);let head=0,tail=0;
+ const start=sy*sw+sx;queue[tail++]=start;visited[start]=1;
+ const tolerance=52*52*3;
+ const similar=p=>{
+  const i=p*4,dr=data[i]-br,dg=data[i+1]-bg,db=data[i+2]-bb;
+  return dr*dr+dg*dg+db*db<=tolerance;
+ };
+ while(head<tail){
+  const p=queue[head++],x=p%sw,y=(p/sw)|0;
+  const ns=[];
+  if(x>0)ns.push(p-1);if(x<sw-1)ns.push(p+1);
+  if(y>0)ns.push(p-sw);if(y<sh-1)ns.push(p+sw);
+  for(const n of ns)if(!visited[n]&&similar(n)){visited[n]=1;queue[tail++]=n}
+ }
+ const seen=new Uint8Array(total);
+ let best=[],bounds=null;
+ for(let i=0;i<total;i++){
+  if(visited[i]||seen[i])continue;
+  const stack=[i],component=[];seen[i]=1;
+  let minX=sw,minY=sh,maxX=0,maxY=0;
+  while(stack.length){
+   const p=stack.pop(),x=p%sw,y=(p/sw)|0;component.push(p);
+   minX=Math.min(minX,x);maxX=Math.max(maxX,x);
+   minY=Math.min(minY,y);maxY=Math.max(maxY,y);
+   const ns=[];
+   if(x>0)ns.push(p-1);if(x<sw-1)ns.push(p+1);
+   if(y>0)ns.push(p-sw);if(y<sh-1)ns.push(p+sw);
+   for(const n of ns)if(!visited[n]&&!seen[n]){seen[n]=1;stack.push(n)}
   }
+  if(component.length>best.length){best=component;bounds={minX,minY,maxX,maxY}}
+ }
+ if(!bounds||best.length<total*.002){
+  outlineResult.textContent="モンスターが見つからなかったよ。別の背景をタップしてみてね。";return;
+ }
+ monsterBounds={
+  minX:bounds.minX/scale,minY:bounds.minY/scale,
+  maxX:bounds.maxX/scale,maxY:bounds.maxY/scale
+ };
+ const mask=new Uint8Array(total);best.forEach(p=>mask[p]=1);
+ const out=overlay.getContext("2d");
+ out.clearRect(0,0,w,h);
+ out.save();out.scale(1,1);
+ out.strokeStyle="#41ff82";out.lineWidth=2/scale;
+ for(const p of best){
+  const x=p%sw,y=(p/sw)|0;
+  if(x===0||y===0||x===sw-1||y===sh-1||
+   !mask[p-1]||!mask[p+1]||!mask[p-sw]||!mask[p+sw]){
+   out.beginPath();out.arc(x/scale,y/scale,1.5/scale,0,Math.PI*2);out.stroke();
+  }
+ }
+ out.strokeStyle="#ffe05a";out.lineWidth=Math.max(3,w/180);
+ out.strokeRect(monsterBounds.minX,monsterBounds.minY,
+  monsterBounds.maxX-monsterBounds.minX,
+  monsterBounds.maxY-monsterBounds.minY);
+ out.restore();
+ $("clear").hidden=false;
+ $("apply").disabled=true;
+ outlineResult.textContent="輪郭を認識したよ！次は左目・右目・口を登録してね。";
+ $("photoHelp").textContent="下のパーツを選んでから、写真の該当する場所をタップしてね。";
+ $("photoHelp").hidden=false;
+}
+
+// パーツ登録
+document.querySelectorAll("[data-part]").forEach(btn=>{
+ btn.addEventListener("click",()=>{
+  currentPart=btn.dataset.part;
+  document.querySelectorAll("[data-part]").forEach(b=>b.classList.toggle("active",b===btn));
+  const names={left:"左目",right:"右目",mouth:"口"};
+  $("partStatus").textContent=names[currentPart]+"を選択中。写真の該当部分をタップしてね。";
+ });
 });
-toggle.addEventListener("click", () => {
-  const stopped = monster.classList.toggle("still");
-  toggle.textContent = stopped ? "動かす" : "動きを止める";
-  if (stopped) monster.classList.remove("wiggling");
+function registerPart(x,y){
+ if(!monsterBounds){$("partStatus").textContent="先に輪郭認識をしてね。";return}
+ const b=monsterBounds;
+ if(x<b.minX||x>b.maxX||y<b.minY||y>b.maxY){
+  $("partStatus").textContent="モンスターの枠内をタップしてね。";return;
+ }
+ const nx=(x-b.minX)/(b.maxX-b.minX);
+ const ny=(y-b.minY)/(b.maxY-b.minY);
+ points[currentPart]={x:nx,y:ny};
+ drawMarkers();
+ updatePartResult();
+ const names={left:"左目",right:"右目",mouth:"口"};
+ $("partStatus").textContent=names[currentPart]+"を登録したよ！";
+ const next={left:"right",right:"mouth",mouth:"left"};
+ currentPart=next[currentPart];
+ document.querySelectorAll("[data-part]").forEach(btn=>{
+  btn.classList.toggle("active",btn.dataset.part===currentPart);
+ });
+ const nextNames={left:"左目",right:"右目",mouth:"口"};
+ $("partStatus").textContent+=" 次は"+nextNames[currentPart]+"を登録しよう。";
+ $("apply").disabled=!(points.left&&points.right&&points.mouth);
+}
+function drawMarkers(){
+ if(!monsterBounds)return;
+ const ctx=overlay.getContext("2d");
+ ctx.clearRect(0,0,overlay.width,overlay.height);
+ // 輪郭枠を残す
+ const b=monsterBounds;
+ ctx.strokeStyle="#ffe05a";ctx.lineWidth=Math.max(3,overlay.width/180);
+ ctx.strokeRect(b.minX,b.minY,b.maxX-b.minX,b.maxY-b.minY);
+ const labels={left:"左目",right:"右目",mouth:"口"};
+ const colors={left:"#ff6b9a",right:"#5cc8ff",mouth:"#ffe05a"};
+ for(const key of Object.keys(points)){
+  const p=points[key];if(!p)continue;
+  const x=b.minX+p.x*(b.maxX-b.minX);
+  const y=b.minY+p.y*(b.maxY-b.minY);
+  ctx.beginPath();ctx.arc(x,y,Math.max(9,overlay.width/65),0,Math.PI*2);
+  ctx.fillStyle=colors[key];ctx.fill();
+  ctx.strokeStyle="white";ctx.lineWidth=3;ctx.stroke();
+  ctx.fillStyle="black";ctx.font=`bold ${Math.max(12,overlay.width/35)}px sans-serif`;
+  ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(labels[key],x,y);
+ }
+}
+function updatePartResult(){
+ const labels={left:"左目",right:"右目",mouth:"口"};
+ partResult.textContent=Object.keys(points).map(k=>
+  labels[k]+"："+(points[k]?"登録済み":"未登録")
+ ).join("　／　");
+}
+function applyParts(){
+ if(!points.left||!points.right||!points.mouth)return;
+ // 登録位置をデジタルモンスターに反映
+ const mapping=[
+  ["digitalLeft",points.left],
+  ["digitalRight",points.right],
+  ["digitalMouth",points.mouth]
+ ];
+ mapping.forEach(([id,p])=>{
+  const el=$(id);
+  el.style.left=(p.x*100)+"%";
+  el.style.top=(p.y*100)+"%";
+  el.style.transform="translate(-50%,-50%)";
+ });
+ partResult.textContent="🎉 3つのパーツをデジタルモンスターに反映したよ！";
+}
+function resetParts(){
+ points={left:null,right:null,mouth:null};
+ ["digitalLeft","digitalRight","digitalMouth"].forEach(id=>{
+  const el=$(id);el.style.left="";el.style.top="";el.style.transform="";
+ });
+ drawMarkers();updatePartResult();
+ $("apply").disabled=true;
+ $("partStatus").textContent="パーツ位置をリセットしたよ。";
+}
+function resetDigital(){
+ resetParts();
+}
+$("recognize").addEventListener("click",recognize);
+$("clear").addEventListener("click",()=>{
+ clearRecognition();
+ $("photoHelp").textContent="背景をタップして輪郭を認識してね。";
 });
-function playWiggle() {
-  monster.classList.remove("still");
-  toggle.textContent = "動きを止める";
-  monster.classList.remove("wiggling");
-  void monster.offsetWidth;
-  monster.classList.add("wiggling");
-  clearTimeout(wiggleTimer);
-  wiggleTimer = setTimeout(() => monster.classList.remove("wiggling"), 700);
-}
-wiggle.addEventListener("click", playWiggle);
-
-
-// カメラ機能
-const cameraVideo = document.getElementById("cameraVideo");
-const cameraPlaceholder = document.getElementById("cameraPlaceholder");
-const capturedImage = document.getElementById("capturedImage");
-const photoCanvas = document.getElementById("photoCanvas");
-const outlineCanvas = document.getElementById("outlineCanvas");
-const photoArea = document.getElementById("photoArea");
-const startCameraButton = document.getElementById("startCamera");
-const takePhotoButton = document.getElementById("takePhoto");
-const retakePhotoButton = document.getElementById("retakePhoto");
-const stopCameraButton = document.getElementById("stopCamera");
-const cameraStatus = document.getElementById("cameraStatus");
-const recognizeButton = document.getElementById("recognizeButton");
-const clearOutlineButton = document.getElementById("clearOutline");
-const recognitionHint = document.getElementById("recognitionHint");
-const recognitionResult = document.getElementById("recognitionResult");
-
-let cameraStream = null;
-let selectedBackground = null;
-
-async function startCamera() {
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    cameraStatus.textContent = "カメラを使えない環境だよ。HTTPSのSafariかChromeで開いてね。";
-    return;
-  }
-
-  startCameraButton.disabled = true;
-  cameraStatus.textContent = "カメラを起動中……";
-
-  try {
-    let stream;
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        audio: false,
-        video: {
-          facingMode: { ideal: "environment" },
-          width: { ideal: 1280 },
-          height: { ideal: 960 }
-        }
-      });
-    } catch (error) {
-      stream = await navigator.mediaDevices.getUserMedia({
-        audio: false,
-        video: true
-      });
-    }
-
-    cameraStream = stream;
-    cameraVideo.srcObject = stream;
-    cameraVideo.muted = true;
-    cameraVideo.setAttribute("playsinline", "");
-    cameraVideo.hidden = false;
-    cameraPlaceholder.hidden = true;
-
-    await new Promise((resolve, reject) => {
-      if (cameraVideo.readyState >= 1 && cameraVideo.videoWidth > 0) {
-        resolve();
-        return;
-      }
-      const timeout = setTimeout(() => reject(new Error("映像準備タイムアウト")), 10000);
-      cameraVideo.onloadedmetadata = () => {
-        clearTimeout(timeout);
-        resolve();
-      };
-      cameraVideo.onerror = () => {
-        clearTimeout(timeout);
-        reject(new Error("映像読み込みエラー"));
-      };
-    });
-
-    await cameraVideo.play();
-    takePhotoButton.disabled = false;
-    stopCameraButton.disabled = false;
-    retakePhotoButton.hidden = true;
-    cameraStatus.textContent = "カメラが起動したよ！フェルトを映してね。";
-
-  } catch (error) {
-    stopCameraTracks();
-    cameraVideo.srcObject = null;
-    cameraVideo.hidden = true;
-    cameraPlaceholder.hidden = false;
-    startCameraButton.disabled = false;
-    takePhotoButton.disabled = true;
-    stopCameraButton.disabled = true;
-    cameraStatus.textContent = "カメラを起動できなかったよ。Safariの許可を確認してね。";
-    console.error(error);
-  }
-}
-
-function stopCameraTracks() {
-  if (cameraStream) {
-    cameraStream.getTracks().forEach(track => track.stop());
-    cameraStream = null;
-  }
-}
-
-function resetRecognition() {
-  selectedBackground = null;
-  const ctx = outlineCanvas.getContext("2d");
-  ctx.clearRect(0, 0, outlineCanvas.width, outlineCanvas.height);
-  recognizeButton.disabled = true;
-  clearOutlineButton.hidden = true;
-  recognitionHint.hidden = true;
-  recognitionResult.textContent = "";
-}
-
-function takePhoto() {
-  if (!cameraStream || !cameraVideo.videoWidth) {
-    cameraStatus.textContent = "先にカメラを起動してね。";
-    return;
-  }
-
-  photoCanvas.width = cameraVideo.videoWidth;
-  photoCanvas.height = cameraVideo.videoHeight;
-
-  const ctx = photoCanvas.getContext("2d");
-  ctx.drawImage(cameraVideo, 0, 0, photoCanvas.width, photoCanvas.height);
-
-  capturedImage.onload = () => {
-    stopCameraTracks();
-    cameraVideo.pause();
-    cameraVideo.srcObject = null;
-    cameraVideo.hidden = true;
-
-    photoArea.hidden = false;
-    cameraVideo.hidden = true;
-    cameraPlaceholder.hidden = true;
-
-    outlineCanvas.width = capturedImage.naturalWidth;
-    outlineCanvas.height = capturedImage.naturalHeight;
-    outlineCanvas.style.width = "100%";
-    outlineCanvas.style.height = "100%";
-
-    takePhotoButton.disabled = true;
-    retakePhotoButton.hidden = false;
-    startCameraButton.disabled = false;
-    stopCameraButton.disabled = true;
-
-    recognitionHint.hidden = false;
-    recognizeButton.disabled = false;
-    cameraStatus.textContent = "写真を撮影したよ！背景をタップしてね。";
-    recognitionResult.textContent = "";
-  };
-
-  capturedImage.src = photoCanvas.toDataURL("image/jpeg", .92);
-}
-
-async function retakePhoto() {
-  photoArea.hidden = true;
-  resetRecognition();
-  retakePhotoButton.hidden = true;
-  cameraStatus.textContent = "カメラをもう一度起動するね。";
-  await startCamera();
-}
-
-function stopCamera() {
-  stopCameraTracks();
-  cameraVideo.pause();
-  cameraVideo.srcObject = null;
-  cameraVideo.hidden = true;
-  cameraPlaceholder.hidden = false;
-  photoArea.hidden = true;
-  resetRecognition();
-
-  startCameraButton.disabled = false;
-  takePhotoButton.disabled = true;
-  retakePhotoButton.hidden = true;
-  stopCameraButton.disabled = true;
-  cameraStatus.textContent = "カメラを終了したよ。";
-}
-
-// 写真のタップ位置を元画像のピクセル位置に変換
-function getImagePoint(event) {
-  const rect = capturedImage.getBoundingClientRect();
-  const x = (event.clientX - rect.left) / rect.width;
-  const y = (event.clientY - rect.top) / rect.height;
-
-  if (x < 0 || x > 1 || y < 0 || y > 1) return null;
-
-  return {
-    x: Math.floor(x * capturedImage.naturalWidth),
-    y: Math.floor(y * capturedImage.naturalHeight)
-  };
-}
-
-// 背景色をタップして指定する
-capturedImage.addEventListener("click", event => {
-  if (photoArea.hidden) return;
-
-  const point = getImagePoint(event);
-  if (!point) return;
-
-  selectedBackground = point;
-  recognizeButton.disabled = false;
-  recognitionResult.textContent =
-    "背景の場所を指定したよ。『輪郭を認識する』を押してね。";
-
-  const ctx = outlineCanvas.getContext("2d");
-  ctx.clearRect(0, 0, outlineCanvas.width, outlineCanvas.height);
-
-  // 選んだ点に小さな印を表示
-  ctx.beginPath();
-  ctx.arc(point.x, point.y, Math.max(8, capturedImage.naturalWidth / 100), 0, Math.PI * 2);
-  ctx.strokeStyle = "#ffdf57";
-  ctx.lineWidth = Math.max(3, capturedImage.naturalWidth / 250);
-  ctx.stroke();
+$("start").addEventListener("click",startCamera);
+$("shoot").addEventListener("click",shoot);
+$("stop").addEventListener("click",stopCamera);
+$("retake").addEventListener("click",retake);
+$("apply").addEventListener("click",applyParts);
+$("resetParts").addEventListener("click",resetParts);
+$("resetDigital").addEventListener("click",resetDigital);
+$("toggleMotion").addEventListener("click",()=>{
+ motion=!motion;
+ $("monster").classList.toggle("still",!motion);
+ $("toggleMotion").textContent=motion?"動きを止める":"動かす";
 });
-
-// 背景と似た色で、タップ地点からつながっている範囲を探す
-function recognizeOutline() {
-  if (!selectedBackground) {
-    recognitionResult.textContent = "まず写真の背景をタップしてね。";
-    return;
-  }
-
-  const width = capturedImage.naturalWidth;
-  const height = capturedImage.naturalHeight;
-
-  // 処理を軽くするため、最大幅480pxに縮小して認識
-  const scale = Math.min(1, 480 / width);
-  const w = Math.max(1, Math.round(width * scale));
-  const h = Math.max(1, Math.round(height * scale));
-
-  const workCanvas = document.createElement("canvas");
-  workCanvas.width = w;
-  workCanvas.height = h;
-
-  const workCtx = workCanvas.getContext("2d", { willReadFrequently: true });
-  workCtx.drawImage(capturedImage, 0, 0, w, h);
-
-  const imageData = workCtx.getImageData(0, 0, w, h);
-  const data = imageData.data;
-  const total = w * h;
-
-  const startX = Math.min(w - 1, Math.max(0, Math.floor(selectedBackground.x * scale)));
-  const startY = Math.min(h - 1, Math.max(0, Math.floor(selectedBackground.y * scale)));
-  const startIndex = (startY * w + startX) * 4;
-
-  const bgR = data[startIndex];
-  const bgG = data[startIndex + 1];
-  const bgB = data[startIndex + 2];
-
-  const visited = new Uint8Array(total);
-  const queue = new Int32Array(total);
-  let head = 0;
-  let tail = 0;
-
-  const startPixel = startY * w + startX;
-  queue[tail++] = startPixel;
-  visited[startPixel] = 1;
-
-  // 色の許容範囲。背景に影がある場合は調整が必要。
-  const tolerance = 52;
-  const toleranceSquared = tolerance * tolerance * 3;
-
-  function isBackground(pixel) {
-    const i = pixel * 4;
-    const dr = data[i] - bgR;
-    const dg = data[i + 1] - bgG;
-    const db = data[i + 2] - bgB;
-    return dr * dr + dg * dg + db * db <= toleranceSquared;
-  }
-
-  while (head < tail) {
-    const pixel = queue[head++];
-    const x = pixel % w;
-    const y = Math.floor(pixel / w);
-
-    const neighbors = [];
-    if (x > 0) neighbors.push(pixel - 1);
-    if (x < w - 1) neighbors.push(pixel + 1);
-    if (y > 0) neighbors.push(pixel - w);
-    if (y < h - 1) neighbors.push(pixel + w);
-
-    for (const next of neighbors) {
-      if (!visited[next] && isBackground(next)) {
-        visited[next] = 1;
-        queue[tail++] = next;
-      }
-    }
-  }
-
-  // 背景以外の最大の連結領域を探す
-  const foregroundVisited = new Uint8Array(total);
-  let largestComponent = [];
-  let minX = w, minY = h, maxX = 0, maxY = 0;
-
-  for (let i = 0; i < total; i++) {
-    if (visited[i] || foregroundVisited[i]) continue;
-
-    const component = [];
-    const stack = [i];
-    foregroundVisited[i] = 1;
-
-    let cMinX = w, cMinY = h, cMaxX = 0, cMaxY = 0;
-
-    while (stack.length) {
-      const pixel = stack.pop();
-      component.push(pixel);
-
-      const x = pixel % w;
-      const y = Math.floor(pixel / w);
-      cMinX = Math.min(cMinX, x);
-      cMinY = Math.min(cMinY, y);
-      cMaxX = Math.max(cMaxX, x);
-      cMaxY = Math.max(cMaxY, y);
-
-      const neighbors = [];
-      if (x > 0) neighbors.push(pixel - 1);
-      if (x < w - 1) neighbors.push(pixel + 1);
-      if (y > 0) neighbors.push(pixel - w);
-      if (y < h - 1) neighbors.push(pixel + w);
-
-      for (const next of neighbors) {
-        if (!visited[next] && !foregroundVisited[next]) {
-          foregroundVisited[next] = 1;
-          stack.push(next);
-        }
-      }
-    }
-
-    if (component.length > largestComponent.length) {
-      largestComponent = component;
-      minX = cMinX;
-      minY = cMinY;
-      maxX = cMaxX;
-      maxY = cMaxY;
-    }
-  }
-
-  if (largestComponent.length < total * 0.002) {
-    recognitionResult.textContent =
-      "モンスターを見つけられなかったよ。背景を別の場所でタップしてみてね。";
-    return;
-  }
-
-  // 元画像サイズの透明キャンバスに輪郭を描く
-  const output = document.createElement("canvas");
-  output.width = width;
-  output.height = height;
-  const outCtx = output.getContext("2d");
-  const outlineData = outCtx.createImageData(width, height);
-
-  const foregroundMask = new Uint8Array(total);
-  largestComponent.forEach(pixel => foregroundMask[pixel] = 1);
-
-  // 背景との境界に緑色の線を描く
-  for (const pixel of largestComponent) {
-    const x = pixel % w;
-    const y = Math.floor(pixel / w);
-
-    const edge =
-      x === 0 || y === 0 || x === w - 1 || y === h - 1 ||
-      !foregroundMask[pixel - 1] ||
-      !foregroundMask[pixel + 1] ||
-      !foregroundMask[pixel - w] ||
-      !foregroundMask[pixel + w];
-
-    if (!edge) continue;
-
-    const originalX = Math.floor(x / scale);
-    const originalY = Math.floor(y / scale);
-    const radius = Math.max(1, Math.round(2 / scale));
-
-    for (let dy = -radius; dy <= radius; dy++) {
-      for (let dx = -radius; dx <= radius; dx++) {
-        const px = originalX + dx;
-        const py = originalY + dy;
-
-        if (px < 0 || py < 0 || px >= width || py >= height) continue;
-
-        const index = (py * width + px) * 4;
-        outlineData.data[index] = 65;
-        outlineData.data[index + 1] = 255;
-        outlineData.data[index + 2] = 130;
-        outlineData.data[index + 3] = 255;
-      }
-    }
-  }
-
-  outCtx.putImageData(outlineData, 0, 0);
-
-  // 輪郭と外接枠を重ねる
-  const displayCtx = outlineCanvas.getContext("2d");
-  displayCtx.clearRect(0, 0, width, height);
-  displayCtx.drawImage(output, 0, 0);
-
-  const originalMinX = minX / scale;
-  const originalMinY = minY / scale;
-  const originalMaxX = maxX / scale;
-  const originalMaxY = maxY / scale;
-
-  displayCtx.strokeStyle = "#ffe05a";
-  displayCtx.lineWidth = Math.max(3, width / 180);
-  displayCtx.strokeRect(
-    originalMinX,
-    originalMinY,
-    originalMaxX - originalMinX,
-    originalMaxY - originalMinY
-  );
-
-  clearOutlineButton.hidden = false;
-  recognitionResult.textContent =
-    "輪郭を見つけたよ！緑色が輪郭、黄色が全体の範囲だよ。";
-}
-
-function clearOutline() {
-  const ctx = outlineCanvas.getContext("2d");
-  ctx.clearRect(0, 0, outlineCanvas.width, outlineCanvas.height);
-  recognitionResult.textContent = "";
-  clearOutlineButton.hidden = true;
-  recognitionHint.hidden = false;
-}
-
-recognizeButton.addEventListener("click", recognizeOutline);
-clearOutlineButton.addEventListener("click", clearOutline);
-
-startCameraButton.addEventListener("click", startCamera);
-takePhotoButton.addEventListener("click", takePhoto);
-retakePhotoButton.addEventListener("click", retakePhoto);
-stopCameraButton.addEventListener("click", stopCamera);
-
-window.addEventListener("pagehide", stopCamera);
-
-showEffects("normal");
+window.addEventListener("pagehide",stopCamera);
+updatePartResult();
 </script>
 </body>
 </html>
