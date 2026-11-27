@@ -261,13 +261,13 @@
 <body>
   <main class="app">
     <h1>🧵 ぬのモン</h1>
-    <p class="sub">STEP 10：フェルトパーツの切り抜き・保存</p>
+    <p class="sub">STEP 11：胴体・フェルトパーツの切り抜き</p>
 
     <section class="panel">
       <h2>デジタルモンスター</h2>
       <div class="stage">
         <div class="monster" id="monster">
-          <img class="body" src="body.png" alt="">
+          <img class="body" id="digitalBody" src="body.png" alt="">
           <img class="eye left" id="digitalLeft" src="eye_left.png" alt="">
           <img class="eye right" id="digitalRight" src="eye_right.png" alt="">
           <img class="mouth" id="digitalMouth" src="mouth.png" alt="">
@@ -309,7 +309,7 @@
 
     <section class="panel">
       <h2>👀 顔パーツを登録</h2>
-      <p class="help">パーツを選んで、写真上の該当する場所をタップしてね。タップ位置の周りを切り抜いて、デジタル側に使うよ。</p>
+      <p class="help">パーツを選んで、写真上の該当する場所をタップしてね。輪郭を認識すると胴体を切り抜き、タップした目や口も切り抜いてデジタル側に使うよ。</p>
       <div class="part-buttons">
         <button data-part="left" class="active">左目</button>
         <button data-part="right">右目</button>
@@ -348,6 +348,7 @@
     let currentPart = "left";
     let points = { left: null, right: null, mouth: null };
     let partImages = { left: null, right: null, mouth: null };
+    let bodyImage = null;
     let motion = true;
     let currentName = "";
 
@@ -376,6 +377,8 @@
     }
 
     function drawDigital() {
+      $("digitalBody").src = bodyImage || "body.png";
+
       const mapping = [
         ["digitalLeft", "left", points.left, 25.5, 8],
         ["digitalRight", "right", points.right, 25.5, 8],
@@ -399,6 +402,90 @@
         el.style.width = width + "%";
         el.style.transform = "";
       });
+    }
+
+    function makeBodyImage() {
+      if (!photo.complete || !photo.naturalWidth || !backgroundPoint || !bounds) return null;
+
+      const bw = bounds.maxX - bounds.minX;
+      const bh = bounds.maxY - bounds.minY;
+      const padX = bw * 0.035;
+      const padY = bh * 0.035;
+      const sx = Math.max(0, bounds.minX - padX);
+      const sy = Math.max(0, bounds.minY - padY);
+      const ex = Math.min(photo.naturalWidth, bounds.maxX + padX);
+      const ey = Math.min(photo.naturalHeight, bounds.maxY + padY);
+      const cropW = Math.max(1, Math.round(ex - sx));
+      const cropH = Math.max(1, Math.round(ey - sy));
+
+      const maxSide = 720;
+      const scale = Math.min(1, maxSide / Math.max(cropW, cropH));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(cropW * scale));
+      canvas.height = Math.max(1, Math.round(cropH * scale));
+
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      ctx.drawImage(photo, sx, sy, cropW, cropH, 0, 0, canvas.width, canvas.height);
+
+      const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = image.data;
+      const w = canvas.width, h = canvas.height, total = w * h;
+
+      // 撮影時に指定した背景色を基準に、外側につながる背景だけを透明化する
+      const bgX = Math.max(0, Math.min(photo.naturalWidth - 1, Math.round(backgroundPoint.x)));
+      const bgY = Math.max(0, Math.min(photo.naturalHeight - 1, Math.round(backgroundPoint.y)));
+      const bgCanvas = document.createElement("canvas");
+      bgCanvas.width = bgCanvas.height = 1;
+      const bgCtx = bgCanvas.getContext("2d", { willReadFrequently: true });
+      bgCtx.drawImage(photo, bgX, bgY, 1, 1, 0, 0, 1, 1);
+      const bg = bgCtx.getImageData(0, 0, 1, 1).data;
+
+      const startX = Math.max(0, Math.min(w - 1, Math.floor((backgroundPoint.x - sx) * scale)));
+      const startY = Math.max(0, Math.min(h - 1, Math.floor((backgroundPoint.y - sy) * scale)));
+      const start = startY * w + startX;
+      const queue = new Int32Array(total);
+      const visited = new Uint8Array(total);
+      let head = 0, tail = 0;
+
+      const isBackground = index => {
+        const i = index * 4;
+        const dr = data[i] - bg[0];
+        const dg = data[i + 1] - bg[1];
+        const db = data[i + 2] - bg[2];
+        return dr * dr + dg * dg + db * db <= 52 * 52 * 3;
+      };
+
+      if (isBackground(start)) {
+        queue[tail++] = start;
+        visited[start] = 1;
+      }
+
+      while (head < tail) {
+        const pos = queue[head++];
+        const x = pos % w;
+        const y = (pos / w) | 0;
+        data[pos * 4 + 3] = 0;
+
+        if (x > 0) {
+          const n = pos - 1;
+          if (!visited[n] && isBackground(n)) { visited[n] = 1; queue[tail++] = n; }
+        }
+        if (x < w - 1) {
+          const n = pos + 1;
+          if (!visited[n] && isBackground(n)) { visited[n] = 1; queue[tail++] = n; }
+        }
+        if (y > 0) {
+          const n = pos - w;
+          if (!visited[n] && isBackground(n)) { visited[n] = 1; queue[tail++] = n; }
+        }
+        if (y < h - 1) {
+          const n = pos + w;
+          if (!visited[n] && isBackground(n)) { visited[n] = 1; queue[tail++] = n; }
+        }
+      }
+
+      ctx.putImageData(image, 0, 0);
+      return canvas.toDataURL("image/png");
     }
 
     function makePartImage(part, point) {
@@ -463,6 +550,7 @@
     function resetParts() {
       points = { left: null, right: null, mouth: null };
       partImages = { left: null, right: null, mouth: null };
+      bodyImage = null;
       drawDigital(); drawMarkers(); updatePartResult();
       $("apply").disabled = true;
       $("partStatus").textContent = "パーツ位置をリセットしたよ。";
@@ -622,8 +710,12 @@
       }
       out.strokeStyle = "#ffe05a"; out.lineWidth = Math.max(3, w / 180);
       out.strokeRect(bounds.minX, bounds.minY, bounds.maxX - bounds.minX, bounds.maxY - bounds.minY);
+      bodyImage = makeBodyImage();
+      drawDigital();
       $("clear").hidden = false;
-      $("outlineResult").textContent = "輪郭を認識したよ！左目・右目・口を登録してね。";
+      $("outlineResult").textContent = bodyImage
+        ? "輪郭を認識したよ！胴体も切り抜いたよ。左目・右目・口を登録してね。"
+        : "輪郭を認識したよ！左目・右目・口を登録してね。";
     }
     function registerPart(x, y) {
       const b = bounds;
@@ -673,6 +765,7 @@
         name,
         points: JSON.parse(JSON.stringify(points)),
         images: JSON.parse(JSON.stringify(partImages)),
+        bodyImage,
         savedAt: new Date().toISOString()
       };
       list.unshift(entry);
@@ -693,6 +786,7 @@
       partImages = entry.images
         ? JSON.parse(JSON.stringify(entry.images))
         : { left: null, right: null, mouth: null };
+      bodyImage = entry.bodyImage || null;
       currentName = entry.name;
       $("monsterName").value = entry.name;
       $("displayName").textContent = entry.name;
