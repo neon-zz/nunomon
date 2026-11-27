@@ -1,603 +1,103 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ぬのモン試作1号</title>
-
-  <style>
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      padding: 20px;
-      background: #191919;
-      color: white;
-      font-family: sans-serif;
-      text-align: center;
-    }
-
-    h1 { margin-bottom: 8px; }
-
-    .description {
-      color: #bbb;
-      font-size: 14px;
-    }
-
-    .camera-area {
-      position: relative;
-      width: 100%;
-      max-width: 650px;
-      aspect-ratio: 4 / 3;
-      margin: 20px auto;
-      overflow: hidden;
-      border-radius: 16px;
-      background: #292929;
-    }
-
-    video, canvas {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-    }
-
-    video { object-fit: fill; }
-    canvas { pointer-events: none; }
-
-    .buttons {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin: 20px;
-    }
-
-    button {
-      padding: 14px 24px;
-      border: 0;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      background: #f1d5e0;
-      color: #222;
-    }
-
-    button:disabled {
-      opacity: .4;
-      cursor: not-allowed;
-    }
-
-    #stopButton {
-      background: #555;
-      color: white;
-    }
-
-    #status {
-      margin: 18px auto;
-      line-height: 1.7;
-      color: #ffe58a;
-      overflow-wrap: anywhere;
-    }
-
-    .help {
-      color: #aaa;
-      font-size: 12px;
-      line-height: 1.8;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ぬのモン - クリームの子</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: grid; place-items: center;
+    background: #171717; color: #fff; font-family: system-ui, sans-serif;
+    padding: 20px;
+  }
+  .app { width: min(100%, 520px); text-align: center; }
+  h1 { font-size: 1.35rem; margin: 0 0 6px; }
+  .sub { color: #c9c9c9; font-size: .9rem; margin: 0 0 18px; }
+  .stage {
+    min-height: 390px; display: grid; place-items: center;
+    background: radial-gradient(ellipse at center, #383838, #202020 70%);
+    border: 1px solid #555; border-radius: 22px; overflow: hidden;
+    padding: 22px;
+  }
+  .monster {
+    position: relative; width: min(82vw, 360px); aspect-ratio: 921 / 936;
+    animation: float 2.6s ease-in-out infinite;
+    transform-origin: 50% 80%;
+  }
+  .monster.still { animation: none; }
+  .part { position: absolute; height: auto; user-select: none; pointer-events: none; }
+  .body { inset: 0; width: 100%; }
+  .eye {
+    width: 25.5%; top: 27%; transform-origin: center 55%;
+    animation: blink 4.8s infinite;
+  }
+  .eye.left { left: 24%; }
+  .eye.right { left: 55%; animation-delay: .12s; }
+  .mouth {
+    width: 36%; left: 35%; top: 54%;
+    transform-origin: center 15%;
+    animation: mouthMove 3.1s ease-in-out infinite;
+  }
+  .monster.still .eye, .monster.still .mouth { animation: none; }
+  @keyframes float {
+    0%,100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-9px) rotate(-1deg); }
+  }
+  @keyframes blink {
+    0%, 43%, 47%, 100% { transform: scaleY(1); }
+    45% { transform: scaleY(.12); }
+  }
+  @keyframes mouthMove {
+    0%, 100% { transform: translateY(0) scaleY(1); }
+    50% { transform: translateY(3px) scaleY(.94); }
+  }
+  .controls { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+  button {
+    border: 0; border-radius: 999px; padding: 11px 18px;
+    font-size: .95rem; font-weight: 650; cursor: pointer;
+    background: #f4e9e1; color: #302722;
+  }
+  button.secondary { background: #454545; color: white; border: 1px solid #777; }
+  .note { color: #bdbdbd; font-size: .8rem; margin-top: 15px; line-height: 1.6; }
+</style>
 </head>
-
 <body>
-
-  <h1>🐙 ぬのモン試作1号</h1>
-
-  <p class="description">
-    フェルトモンスターを探して追いかけるよ！
-  </p>
-
-  <div class="camera-area">
-    <video id="camera" autoplay muted playsinline></video>
-    <canvas id="overlay"></canvas>
+<main class="app">
+  <h1>ぬのモン</h1>
+  <p class="sub">クリーム色の子・アニメーション試作</p>
+  <section class="stage" aria-label="モンスター表示エリア">
+    <div class="monster" id="monster">
+      <img class="part body" src="body.png" alt="">
+      <img class="part eye left" src="eye_left.png" alt="">
+      <img class="part eye right" src="eye_right.png" alt="">
+      <img class="part mouth" src="mouth.png" alt="">
+    </div>
+  </section>
+  <div class="controls">
+    <button id="toggle">動きを止める</button>
+    <button class="secondary" id="wiggle">ぷるぷる！</button>
   </div>
-
-  <div class="buttons">
-    <button id="startButton">カメラを起動</button>
-    <button id="stopButton" disabled>カメラを停止</button>
-  </div>
-
-  <div id="status">カメラ準備完了！</div>
-
-  <p class="help">
-    赤・ピンク系の色を探しているよ。<br>
-    暗めの背景にフェルトを置いて撮影してね。
-  </p>
-
-  <script>
-    // ==========================
-    // 1. HTML要素
-    // ==========================
-
-    const video = document.getElementById("camera");
-    const canvas = document.getElementById("overlay");
-    const ctx = canvas.getContext("2d");
-
-    const startButton = document.getElementById("startButton");
-    const stopButton = document.getElementById("stopButton");
-    const status = document.getElementById("status");
-
-    // 小さい画像で認識処理をする
-    const detectCanvas = document.createElement("canvas");
-    const detectCtx = detectCanvas.getContext("2d", {
-      willReadFrequently: true
-    });
-
-    const DETECT_WIDTH = 160;
-    const DETECT_HEIGHT = 120;
-
-    detectCanvas.width = DETECT_WIDTH;
-    detectCanvas.height = DETECT_HEIGHT;
-
-    let cameraStream = null;
-    let animationId = null;
-    let lastDetectionTime = 0;
-
-    let detectedTarget = null;
-    let smoothTarget = null;
-
-    const mask = new Uint8Array(
-      DETECT_WIDTH * DETECT_HEIGHT
-    );
-
-    const visited = new Uint8Array(
-      DETECT_WIDTH * DETECT_HEIGHT
-    );
-
-    const queue = new Int32Array(
-      DETECT_WIDTH * DETECT_HEIGHT
-    );
-
-    // ==========================
-    // 2. 色の判定
-    // ==========================
-
-   function isMonsterColor(r, g, b) {
-
-  const brightness = (r + g + b) / 3;
-
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-
-  const saturation = max === 0
-    ? 0
-    : (max - min) / max;
-
-  // 明るいクリーム色・白系を検出
-  return (
-    brightness > 145 &&
-    r > 145 &&
-    g > 135 &&
-    b > 105 &&
-    r >= g &&
-    g >= b - 5 &&
-    saturation < 0.38
-  );
-}
-
-    // ==========================
-    // 3. カメラ画像から色を抽出
-    // ==========================
-
-    function detectMonster() {
-
-      detectCtx.drawImage(
-        video,
-        0,
-        0,
-        DETECT_WIDTH,
-        DETECT_HEIGHT
-      );
-
-      const image = detectCtx.getImageData(
-        0,
-        0,
-        DETECT_WIDTH,
-        DETECT_HEIGHT
-      );
-
-      const pixels = image.data;
-
-      mask.fill(0);
-      visited.fill(0);
-
-      for (let y = 0; y < DETECT_HEIGHT; y++) {
-        for (let x = 0; x < DETECT_WIDTH; x++) {
-
-          const index = y * DETECT_WIDTH + x;
-          const p = index * 4;
-
-          if (
-            isMonsterColor(
-              pixels[p],
-              pixels[p + 1],
-              pixels[p + 2]
-            )
-          ) {
-            mask[index] = 1;
-          }
-        }
-      }
-
-      // ==========================
-      // 4. 色のまとまりを探す
-      // ==========================
-
-      let largest = null;
-      let largestArea = 0;
-
-      for (let i = 0; i < mask.length; i++) {
-
-        if (!mask[i] || visited[i]) continue;
-
-        let head = 0;
-        let tail = 0;
-
-        queue[tail++] = i;
-        visited[i] = 1;
-
-        let minX = DETECT_WIDTH;
-        let minY = DETECT_HEIGHT;
-        let maxX = 0;
-        let maxY = 0;
-
-        while (head < tail) {
-
-          const current = queue[head++];
-
-          const x = current % DETECT_WIDTH;
-          const y = Math.floor(current / DETECT_WIDTH);
-
-          minX = Math.min(minX, x);
-          minY = Math.min(minY, y);
-          maxX = Math.max(maxX, x);
-          maxY = Math.max(maxY, y);
-
-          const neighbors = [
-            current - 1,
-            current + 1,
-            current - DETECT_WIDTH,
-            current + DETECT_WIDTH
-          ];
-
-          for (const next of neighbors) {
-
-            if (
-              next < 0 ||
-              next >= mask.length ||
-              visited[next] ||
-              !mask[next]
-            ) continue;
-
-            // 左右の端をまたがない
-            if (
-              Math.abs(
-                (next % DETECT_WIDTH) - x
-              ) > 1
-            ) continue;
-
-            visited[next] = 1;
-            queue[tail++] = next;
-          }
-        }
-
-        if (tail > largestArea) {
-
-          largestArea = tail;
-
-          largest = {
-            x: minX,
-            y: minY,
-            width: maxX - minX + 1,
-            height: maxY - minY + 1,
-            area: tail
-          };
-        }
-      }
-
-      // 小さすぎる色のかたまりは無視
-      if (!largest || largest.area < 30) {
-        detectedTarget = null;
-        return;
-      }
-
-      detectedTarget = {
-        x: largest.x / DETECT_WIDTH,
-        y: largest.y / DETECT_HEIGHT,
-        width: largest.width / DETECT_WIDTH,
-        height: largest.height / DETECT_HEIGHT
-      };
-    }
-
-    // ==========================
-    // 5. モンスターを描く
-    // ==========================
-
-    function drawMonster(x, y, size, time) {
-
-      const floatY = Math.sin(time / 250) * 6;
-      const rotate = Math.sin(time / 500) * 0.06;
-
-      ctx.save();
-
-      ctx.translate(x, y + floatY);
-      ctx.rotate(rotate);
-
-      const s = size;
-
-      // 体
-      ctx.fillStyle = "#eee5d1";
-      ctx.beginPath();
-
-      ctx.moveTo(-s * 0.65, -s * 0.35);
-
-      ctx.quadraticCurveTo(
-        -s * 0.9, -s,
-        0, -s
-      );
-
-      ctx.quadraticCurveTo(
-        s * 0.9, -s,
-        s * 0.65, -s * 0.35
-      );
-
-      ctx.lineTo(s * 0.65, s * 0.35);
-
-      ctx.quadraticCurveTo(
-        s * 0.9, s * 0.8,
-        s * 0.4, s * 0.5
-      );
-
-      ctx.quadraticCurveTo(
-        0, s * 0.9,
-        -s * 0.4, s * 0.5
-      );
-
-      ctx.quadraticCurveTo(
-        -s * 0.9, s * 0.8,
-        -s * 0.65, s * 0.35
-      );
-
-      ctx.closePath();
-      ctx.fill();
-
-      // 目
-      ctx.fillStyle = "#111";
-
-      ctx.beginPath();
-      ctx.arc(-s * 0.22, -s * 0.25, s * 0.09, 0, Math.PI * 2);
-      ctx.arc(s * 0.22, -s * 0.25, s * 0.09, 0, Math.PI * 2);
-      ctx.fill();
-
-      // 口
-      ctx.strokeStyle = "#333";
-      ctx.lineWidth = Math.max(2, s * 0.035);
-
-      ctx.beginPath();
-      ctx.arc(0, s * 0.05, s * 0.13, 0.15, Math.PI - 0.15);
-      ctx.stroke();
-
-      ctx.restore();
-    }
-
-    // ==========================
-    // 6. 検出位置を表示
-    // ==========================
-
-    function drawOverlay(time) {
-
-      const width = canvas.width;
-      const height = canvas.height;
-
-      ctx.clearRect(0, 0, width, height);
-
-      if (!detectedTarget) {
-
-        smoothTarget = null;
-        return;
-      }
-
-      // 検出位置を画面サイズに変換
-      const target = {
-        x: detectedTarget.x * width,
-        y: detectedTarget.y * height,
-        width: detectedTarget.width * width,
-        height: detectedTarget.height * height
-      };
-
-      // なめらかに追従させる
-      if (!smoothTarget) {
-        smoothTarget = { ...target };
-      } else {
-
-        const speed = 0.35;
-
-        smoothTarget.x += (target.x - smoothTarget.x) * speed;
-        smoothTarget.y += (target.y - smoothTarget.y) * speed;
-        smoothTarget.width += (target.width - smoothTarget.width) * speed;
-        smoothTarget.height += (target.height - smoothTarget.height) * speed;
-      }
-
-      const centerX =
-        smoothTarget.x + smoothTarget.width / 2;
-
-      const centerY =
-        smoothTarget.y + smoothTarget.height / 2;
-
-      // 検出枠
-      ctx.strokeStyle = "#7CFFB2";
-      ctx.lineWidth = 3;
-
-      ctx.strokeRect(
-        smoothTarget.x,
-        smoothTarget.y,
-        smoothTarget.width,
-        smoothTarget.height
-      );
-
-      // 枠の中心にデジタルモンスター
-      const size = Math.max(
-        18,
-        Math.min(
-          smoothTarget.width,
-          smoothTarget.height
-        ) * 0.38
-      );
-
-      drawMonster(
-        centerX,
-        centerY,
-        size,
-        time
-      );
-    }
-
-    // ==========================
-    // 7. メイン処理
-    // ==========================
-
-    function animate(time) {
-
-      if (!cameraStream) return;
-
-      // 約10回/秒で画像認識
-      if (time - lastDetectionTime > 100) {
-
-        lastDetectionTime = time;
-
-        try {
-          detectMonster();
-        } catch (error) {
-          console.error(error);
-        }
-      }
-
-      drawOverlay(time);
-
-      if (detectedTarget) {
-        status.textContent =
-          "フェルトを検出中！モンスターが追いかけているよ！";
-      } else {
-        status.textContent =
-          "フェルトを探しています... 赤・ピンク色を映してね。";
-      }
-
-      animationId = requestAnimationFrame(animate);
-    }
-
-    // ==========================
-    // 8. カメラ起動
-    // ==========================
-
-    async function startCamera() {
-
-      if (
-        !navigator.mediaDevices ||
-        !navigator.mediaDevices.getUserMedia
-      ) {
-        status.textContent =
-          "カメラを利用できません。HTTPSで開いてください。";
-        return;
-      }
-
-      startButton.disabled = true;
-      status.textContent = "カメラを起動しています...";
-
-      try {
-
-        try {
-          cameraStream =
-            await navigator.mediaDevices.getUserMedia({
-              video: {
-                facingMode: { ideal: "environment" }
-              },
-              audio: false
-            });
-        } catch (error) {
-          cameraStream =
-            await navigator.mediaDevices.getUserMedia({
-              video: true,
-              audio: false
-            });
-        }
-
-        video.srcObject = cameraStream;
-
-        await video.play();
-
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-
-        smoothTarget = null;
-        detectedTarget = null;
-
-        stopButton.disabled = false;
-
-        status.textContent = "カメラ起動成功！";
-
-        animationId = requestAnimationFrame(animate);
-
-      } catch (error) {
-
-        console.error(error);
-
-        startButton.disabled = false;
-
-        status.textContent =
-          "カメラエラー：" + error.message;
-      }
-    }
-
-    // ==========================
-    // 9. カメラ停止
-    // ==========================
-
-    function stopCamera() {
-
-      if (cameraStream) {
-
-        cameraStream.getTracks().forEach(track => {
-          track.stop();
-        });
-
-        cameraStream = null;
-      }
-
-      if (animationId !== null) {
-        cancelAnimationFrame(animationId);
-        animationId = null;
-      }
-
-      video.srcObject = null;
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      smoothTarget = null;
-      detectedTarget = null;
-
-      startButton.disabled = false;
-      stopButton.disabled = true;
-
-      status.textContent = "カメラを停止しました。";
-    }
-
-    startButton.addEventListener("click", startCamera);
-    stopButton.addEventListener("click", stopCamera);
-
-    window.addEventListener("pagehide", stopCamera);
-
-  </script>
-
+  <p class="note">体・左右の目・口を別々の画像として重ねています。<br>いまは表示と簡単な動きの確認用。カメラ認識との合体は次の段階です。</p>
+</main>
+<script>
+const monster = document.getElementById('monster');
+const toggle = document.getElementById('toggle');
+const wiggle = document.getElementById('wiggle');
+toggle.addEventListener('click', () => {
+  monster.classList.toggle('still');
+  toggle.textContent = monster.classList.contains('still') ? '動かす' : '動きを止める';
+});
+wiggle.addEventListener('click', () => {
+  monster.classList.remove('still');
+  monster.style.animation = 'none';
+  void monster.offsetWidth;
+  monster.style.animation = 'wiggle .65s ease-in-out';
+  setTimeout(() => { monster.style.animation = ''; }, 700);
+});
+const style = document.createElement('style');
+style.textContent = '@keyframes wiggle { 0%,100%{transform:rotate(0)} 20%{transform:rotate(-7deg)} 40%{transform:rotate(7deg)} 60%{transform:rotate(-5deg)} 80%{transform:rotate(4deg)} }';
+document.head.appendChild(style);
+</script>
 </body>
 </html>
