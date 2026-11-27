@@ -7,7 +7,11 @@
 <title>ぬのモン - カメラ撮影試作</title>
 <style>
 * { box-sizing: border-box; }
-[hidden] { display: none !important; }
+[hidden],
+.camera-view video[hidden],
+.camera-view img[hidden] {
+  display: none !important;
+}
 
 body {
   margin: 0; min-height: 100vh;
@@ -187,16 +191,6 @@ h1 { font-size: 1.5rem; margin-bottom: 5px; }
 }
 .camera-panel button:disabled { opacity: .4; cursor: not-allowed; }
 
-@media (max-width: 600px) {
-  body { padding: 12px; }
-  .app { width: 100%; }
-  .stage { min-height: 320px; padding: 12px; }
-  .monster { width: min(78vw, 320px); }
-  .camera-panel { padding: 12px; }
-  .camera-view { min-height: 210px; aspect-ratio: 4 / 3; }
-  .camera-buttons button { padding: 10px 12px; font-size: .84rem; }
-}
-
 .controls {
   display: flex; justify-content: center;
   flex-wrap: wrap; gap: 9px; margin-top: 16px;
@@ -211,6 +205,16 @@ button.secondary { background: #454545; color: white; border: 1px solid #777; }
 button.active { background: #d9b7ff; color: #30203f; }
 button:active { transform: scale(.96); }
 .note { color: #bbb; font-size: .85rem; margin-top: 16px; line-height: 1.6; }
+
+@media (max-width: 600px) {
+  body { padding: 12px; }
+  .app { width: 100%; }
+  .stage { min-height: 320px; padding: 12px; }
+  .monster { width: min(78vw, 320px); }
+  .camera-panel { padding: 12px; }
+  .camera-view { min-height: 210px; }
+  .camera-buttons button { padding: 10px 12px; font-size: .84rem; }
+}
 </style>
 </head>
 
@@ -232,8 +236,7 @@ button:active { transform: scale(.96); }
 <section class="camera-panel">
   <h2>📷 フェルトのモンスターを撮影</h2>
   <p class="camera-help">
-    フェルトのモンスターをカメラに映して撮影してみよう！<br>
-    今回は撮影できるところまでの試作だよ。
+    フェルトのモンスターをカメラに映して撮影してみよう！
   </p>
   <div class="camera-view">
     <div class="camera-placeholder" id="cameraPlaceholder">
@@ -413,7 +416,7 @@ function playWiggle() {
 wiggle.addEventListener("click", playWiggle);
 
 
-// カメラ撮影機能
+// カメラ機能
 const cameraVideo = document.getElementById("cameraVideo");
 const cameraPlaceholder = document.getElementById("cameraPlaceholder");
 const capturedImage = document.getElementById("capturedImage");
@@ -423,26 +426,13 @@ const takePhotoButton = document.getElementById("takePhoto");
 const retakePhotoButton = document.getElementById("retakePhoto");
 const stopCameraButton = document.getElementById("stopCamera");
 const cameraStatus = document.getElementById("cameraStatus");
+
 let cameraStream = null;
 
-// モンスター画像が読み込めない場合に原因を表示
-document.querySelectorAll(".monster .part").forEach(image => {
-  image.addEventListener("error", () => {
-    cameraStatus.textContent =
-      "モンスター画像を読み込めないよ。4枚のPNG画像がHTMLと同じフォルダにあるか確認してね。";
-  });
-});
-
 async function startCamera() {
-  if (!window.isSecureContext) {
-    cameraStatus.textContent =
-      "カメラにはHTTPS接続が必要だよ。GitHub Pagesのhttps://から開いてね。";
-    return;
-  }
-
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     cameraStatus.textContent =
-      "このブラウザではカメラを使えないみたい。iPhoneならSafariで開いてね。";
+      "このブラウザではカメラを使えないよ。Safariで開いてね。";
     return;
   }
 
@@ -460,58 +450,46 @@ async function startCamera() {
           height: { ideal: 960 }
         }
       });
-    } catch (firstError) {
-      if (
-        firstError.name === "OverconstrainedError" ||
-        firstError.name === "ConstraintNotSatisfiedError"
-      ) {
-        stream = await navigator.mediaDevices.getUserMedia({
-          audio: false,
-          video: true
-        });
-      } else {
-        throw firstError;
-      }
-    }
-
-    cameraStream = stream;
-    cameraVideo.setAttribute("playsinline", "");
-    cameraVideo.setAttribute("autoplay", "");
-    cameraVideo.muted = true;
-    cameraVideo.srcObject = cameraStream;
-
-    cameraPlaceholder.hidden = true;
-    capturedImage.hidden = true;
-    cameraVideo.hidden = false;
-
-    if (cameraVideo.readyState < 1) {
-      await new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          reject(new Error("カメラ映像の準備に時間がかかっています"));
-        }, 10000);
-        cameraVideo.onloadedmetadata = () => {
-          clearTimeout(timeout);
-          resolve();
-        };
-        cameraVideo.onerror = () => {
-          clearTimeout(timeout);
-          reject(new Error("カメラ映像を読み込めませんでした"));
-        };
+    } catch (error) {
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: true
       });
     }
 
+    cameraStream = stream;
+    cameraVideo.srcObject = stream;
+    cameraVideo.muted = true;
+    cameraVideo.setAttribute("playsinline", "");
+    cameraVideo.hidden = false;
+    capturedImage.hidden = true;
+    cameraPlaceholder.hidden = true;
+
+    await new Promise((resolve, reject) => {
+      if (cameraVideo.readyState >= 1 && cameraVideo.videoWidth > 0) {
+        resolve();
+        return;
+      }
+      const timeout = setTimeout(() => reject(new Error("映像準備タイムアウト")), 10000);
+      cameraVideo.onloadedmetadata = () => {
+        clearTimeout(timeout);
+        resolve();
+      };
+      cameraVideo.onerror = () => {
+        clearTimeout(timeout);
+        reject(new Error("映像読み込みエラー"));
+      };
+    });
+
     await cameraVideo.play();
+
     takePhotoButton.disabled = false;
     stopCameraButton.disabled = false;
     retakePhotoButton.hidden = true;
-    cameraStatus.textContent =
-      "カメラが起動したよ！フェルトのモンスターを映して「撮影する」を押してね。";
+    cameraStatus.textContent = "カメラが起動したよ！撮影してみてね。";
 
   } catch (error) {
-    if (cameraStream) {
-      cameraStream.getTracks().forEach(track => track.stop());
-      cameraStream = null;
-    }
+    stopCameraTracks();
     cameraVideo.srcObject = null;
     cameraVideo.hidden = true;
     cameraPlaceholder.hidden = false;
@@ -519,70 +497,80 @@ async function startCamera() {
     takePhotoButton.disabled = true;
     stopCameraButton.disabled = true;
 
-    if (
-      error.name === "NotAllowedError" ||
-      error.name === "PermissionDeniedError"
-    ) {
-      cameraStatus.textContent =
-        "カメラの許可が必要だよ。iPhoneのSafariで開き、サイト設定からカメラを許可してね。";
-    } else if (
-      error.name === "NotFoundError" ||
-      error.name === "DevicesNotFoundError"
-    ) {
-      cameraStatus.textContent = "カメラが見つからなかったよ。";
-    } else if (error.name === "NotReadableError") {
-      cameraStatus.textContent =
-        "カメラをほかのアプリが使っているかも。ほかのカメラアプリを閉じてね。";
+    if (error.name === "NotAllowedError") {
+      cameraStatus.textContent = "カメラの使用が許可されていないよ。Safariの設定を確認してね。";
     } else {
-      cameraStatus.textContent =
-        "カメラを起動できなかったよ。Safari・HTTPS・カメラ許可を確認してね。";
+      cameraStatus.textContent = "カメラを起動できなかったよ。Safariのカメラ許可を確認してね。";
     }
-    console.error("Camera error:", error);
+    console.error(error);
+  }
+}
+
+function stopCameraTracks() {
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(track => track.stop());
+    cameraStream = null;
   }
 }
 
 function takePhoto() {
   if (!cameraStream || !cameraVideo.videoWidth) {
-    cameraStatus.textContent = "先にカメラを起動してね。";
+    cameraStatus.textContent = "カメラを起動し直してね。";
     return;
   }
 
-  const width = cameraVideo.videoWidth;
-  const height = cameraVideo.videoHeight;
-  photoCanvas.width = width;
-  photoCanvas.height = height;
+  photoCanvas.width = cameraVideo.videoWidth;
+  photoCanvas.height = cameraVideo.videoHeight;
 
   const context = photoCanvas.getContext("2d");
-  context.drawImage(cameraVideo, 0, 0, width, height);
+  context.drawImage(
+    cameraVideo,
+    0, 0,
+    photoCanvas.width,
+    photoCanvas.height
+  );
+
+  capturedImage.onload = () => {
+    cameraVideo.hidden = true;
+    capturedImage.hidden = false;
+
+    // 撮影後はカメラ自体も停止する
+    stopCameraTracks();
+    cameraVideo.pause();
+    cameraVideo.srcObject = null;
+
+    takePhotoButton.disabled = true;
+    retakePhotoButton.hidden = false;
+    startCameraButton.disabled = false;
+    stopCameraButton.disabled = true;
+
+    cameraStatus.textContent = "撮影できたよ！写真を表示しているよ。";
+  };
+
+  capturedImage.onerror = () => {
+    cameraStatus.textContent = "写真の表示に失敗したよ。もう一度撮影してね。";
+  };
 
   capturedImage.src = photoCanvas.toDataURL("image/jpeg", 0.92);
-  cameraVideo.hidden = true;
-  capturedImage.hidden = false;
-  takePhotoButton.disabled = true;
-  retakePhotoButton.hidden = false;
-
-  cameraStatus.textContent =
-    "撮影できたよ！画像を確認して、撮り直すこともできるよ。";
 }
 
-function retakePhoto() {
+async function retakePhoto() {
   capturedImage.hidden = true;
-  cameraVideo.hidden = false;
-  takePhotoButton.disabled = false;
+  cameraVideo.hidden = true;
+  cameraPlaceholder.hidden = false;
   retakePhotoButton.hidden = true;
-  cameraStatus.textContent = "もう一度撮影できるよ！";
+  cameraStatus.textContent = "カメラをもう一度起動するね。";
+  await startCamera();
 }
 
 function stopCamera() {
-  if (cameraStream) {
-    cameraStream.getTracks().forEach(track => track.stop());
-    cameraStream = null;
-  }
-
+  stopCameraTracks();
+  cameraVideo.pause();
   cameraVideo.srcObject = null;
   cameraVideo.hidden = true;
   capturedImage.hidden = true;
   cameraPlaceholder.hidden = false;
+
   startCameraButton.disabled = false;
   takePhotoButton.disabled = true;
   retakePhotoButton.hidden = true;
@@ -595,11 +583,7 @@ takePhotoButton.addEventListener("click", takePhoto);
 retakePhotoButton.addEventListener("click", retakePhoto);
 stopCameraButton.addEventListener("click", stopCamera);
 
-window.addEventListener("pagehide", () => {
-  if (cameraStream) {
-    cameraStream.getTracks().forEach(track => track.stop());
-  }
-});
+window.addEventListener("pagehide", stopCamera);
 
 showEffects("normal");
 </script>
