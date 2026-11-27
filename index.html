@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ぬのモン - 表情コレクション</title>
+<title>ぬのモン - 自動行動</title>
 
 <style>
 * { box-sizing: border-box; }
@@ -26,7 +26,6 @@ body {
 }
 
 h1 { font-size: 1.5rem; margin-bottom: 5px; }
-
 .sub { color: #bbb; margin-bottom: 20px; }
 
 .stage {
@@ -77,7 +76,6 @@ h1 { font-size: 1.5rem; margin-bottom: 5px; }
   animation: mouthMove 3.1s ease-in-out infinite;
 }
 
-/* 通常 */
 @keyframes float {
   0%,100% { transform: translateY(0) rotate(0); }
   50% { transform: translateY(-9px) rotate(-1deg); }
@@ -93,11 +91,9 @@ h1 { font-size: 1.5rem; margin-bottom: 5px; }
   50% { transform: translateY(3px) scaleY(.94); }
 }
 
-/* びっくり */
 .expression-surprised .eye {
   animation-name: surprisedEyes;
 }
-
 .expression-surprised .mouth {
   animation-name: surprisedMouth;
 }
@@ -112,11 +108,9 @@ h1 { font-size: 1.5rem; margin-bottom: 5px; }
   50% { transform: scaleY(1.2); }
 }
 
-/* にっこり */
 .expression-happy .eye {
   animation-name: happyEyes;
 }
-
 .expression-happy .mouth {
   animation-name: happyMouth;
 }
@@ -131,11 +125,9 @@ h1 { font-size: 1.5rem; margin-bottom: 5px; }
   50% { transform: translateY(4px) scaleY(.9); }
 }
 
-/* ねむい */
 .expression-sleepy .eye {
   animation-name: sleepyEyes;
 }
-
 .expression-sleepy .mouth {
   animation-name: sleepyMouth;
 }
@@ -150,11 +142,9 @@ h1 { font-size: 1.5rem; margin-bottom: 5px; }
   50% { transform: translateY(3px) scaleY(.7); }
 }
 
-/* しょんぼり */
 .expression-sad .eye {
   animation-name: sadEyes;
 }
-
 .expression-sad .mouth {
   animation-name: sadMouth;
 }
@@ -169,13 +159,11 @@ h1 { font-size: 1.5rem; margin-bottom: 5px; }
   50% { transform: translateY(7px) scaleY(.65); }
 }
 
-/* 停止 */
 .monster.still .eye,
 .monster.still .mouth {
   animation: none !important;
 }
 
-/* ぷるぷる */
 .monster.wiggling {
   animation: wiggle .65s ease-in-out;
 }
@@ -224,28 +212,24 @@ button:active { transform: scale(.96); }
   color: #bbb;
   font-size: .85rem;
   margin-top: 16px;
+  line-height: 1.6;
 }
 </style>
 </head>
 
 <body>
-
 <main class="app">
 
 <h1>ぬのモン</h1>
-<p class="sub">クリーム色の子・感情アニメーション</p>
+<p class="sub">クリーム色の子・自動行動試作</p>
 
 <section class="stage">
-
 <div class="monster" id="monster">
-
 <img class="part body" src="body.png" alt="">
 <img class="part eye left" src="eye_left.png" alt="">
 <img class="part eye right" src="eye_right.png" alt="">
 <img class="part mouth" src="mouth.png" alt="">
-
 </div>
-
 </section>
 
 <div class="controls" id="expressions">
@@ -257,13 +241,12 @@ button:active { transform: scale(.96); }
 </div>
 
 <div class="controls">
-
+<button id="auto">おまかせ OFF</button>
 <button id="toggle">動きを止める</button>
 <button class="secondary" id="wiggle">ぷるぷる！</button>
-
 </div>
 
-<p class="note" id="note">いつもの顔だよ！</p>
+<p class="note" id="note">好きな表情を選んでみよう！</p>
 
 </main>
 
@@ -271,80 +254,162 @@ button:active { transform: scale(.96); }
 const monster = document.getElementById("monster");
 const toggle = document.getElementById("toggle");
 const wiggle = document.getElementById("wiggle");
+const autoButton = document.getElementById("auto");
 const note = document.getElementById("note");
 
-const buttons = document.querySelectorAll(
-  "[data-expression]"
-);
+const buttons = document.querySelectorAll("[data-expression]");
 
-const expressionData = {
+const expressions = {
   normal: {
-    name: "いつもの顔",
     message: "いつもの顔だよ！"
   },
   surprised: {
-    name: "びっくり",
     message: "びっくりした！"
   },
   happy: {
-    name: "にっこり",
     message: "ごきげんだよ！"
   },
   sleepy: {
-    name: "ねむい",
     message: "もう眠たいなぁ……"
   },
   sad: {
-    name: "しょんぼり",
     message: "ちょっと元気がないみたい……"
   }
 };
 
-// 表情切り替え
+const expressionNames = Object.keys(expressions);
+
+let currentExpression = "normal";
+let autoMode = false;
+let autoTimer = null;
+let wiggleTimer = null;
+
+// 表情を変更する共通処理
+function changeExpression(name) {
+
+  monster.classList.remove(
+    "expression-surprised",
+    "expression-happy",
+    "expression-sleepy",
+    "expression-sad"
+  );
+
+  if (name !== "normal") {
+    monster.classList.add("expression-" + name);
+  }
+
+  currentExpression = name;
+
+  buttons.forEach(button => {
+    button.classList.toggle(
+      "active",
+      button.dataset.expression === name
+    );
+  });
+
+  note.textContent = expressions[name].message;
+}
+
+// 手動で表情を選ぶ
 buttons.forEach(button => {
 
   button.addEventListener("click", () => {
 
-    const selected = button.dataset.expression;
-
-    monster.classList.remove(
-      "expression-surprised",
-      "expression-happy",
-      "expression-sleepy",
-      "expression-sad"
-    );
-
-    if (selected !== "normal") {
-      monster.classList.add(
-        "expression-" + selected
-      );
-    }
-
-    buttons.forEach(b => b.classList.remove("active"));
-    button.classList.add("active");
-
-    note.textContent =
-      expressionData[selected].message;
+    stopAuto();
+    changeExpression(button.dataset.expression);
 
   });
 
 });
 
-// 動きを止める
+// 自動行動
+function startAuto() {
+
+  if (autoMode) return;
+
+  autoMode = true;
+  autoButton.textContent = "おまかせ ON";
+  autoButton.classList.add("active");
+
+  note.textContent = "自由気ままに遊んでいるよ！";
+
+  scheduleAction();
+}
+
+function stopAuto() {
+
+  autoMode = false;
+
+  clearTimeout(autoTimer);
+  clearTimeout(wiggleTimer);
+
+  monster.classList.remove("wiggling");
+
+  autoButton.textContent = "おまかせ OFF";
+  autoButton.classList.remove("active");
+}
+
+function scheduleAction() {
+
+  clearTimeout(autoTimer);
+
+  if (!autoMode) return;
+
+  // 3〜6秒後に次の行動
+  const delay = 3000 + Math.random() * 3000;
+
+  autoTimer = setTimeout(() => {
+
+    if (!autoMode) return;
+
+    // 5種類からランダムに選ぶ
+    const randomIndex = Math.floor(
+      Math.random() * expressionNames.length
+    );
+
+    const selected = expressionNames[randomIndex];
+
+    changeExpression(selected);
+
+    // 約25%の確率でぷるぷる
+    if (Math.random() < 0.25) {
+      playWiggle();
+    }
+
+    scheduleAction();
+
+  }, delay);
+}
+
+// おまかせ切り替え
+autoButton.addEventListener("click", () => {
+
+  if (autoMode) {
+    stopAuto();
+    note.textContent = "おまかせを終了したよ！";
+  } else {
+    startAuto();
+  }
+
+});
+
+// 動きを止める・再開する
 toggle.addEventListener("click", () => {
 
-  monster.classList.toggle("still");
-
-  const stopped = monster.classList.contains("still");
+  const stopped = monster.classList.toggle("still");
 
   toggle.textContent = stopped
     ? "動かす"
     : "動きを止める";
 
+  if (stopped) {
+    monster.classList.remove("wiggling");
+  }
+
 });
 
-// ぷるぷる
-wiggle.addEventListener("click", () => {
+// ぷるぷる動作
+function playWiggle() {
 
   monster.classList.remove("still");
   toggle.textContent = "動きを止める";
@@ -355,13 +420,16 @@ wiggle.addEventListener("click", () => {
 
   monster.classList.add("wiggling");
 
-  setTimeout(() => {
+  clearTimeout(wiggleTimer);
+
+  wiggleTimer = setTimeout(() => {
     monster.classList.remove("wiggling");
   }, 700);
 
-});
+}
+
+wiggle.addEventListener("click", playWiggle);
 
 </script>
-
 </body>
 </html>
