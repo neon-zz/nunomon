@@ -1,484 +1,940 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ぬのモン - 感情演出つき</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ぬのモン - カメラ撮影試作</title>
 
-<style>
-* { box-sizing: border-box; }
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-body {
-  margin: 0;
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  background: #171717;
-  color: white;
-  font-family: system-ui, sans-serif;
-  padding: 20px;
-}
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #171717;
+      color: white;
+      font-family: system-ui, sans-serif;
+      padding: 20px;
+    }
 
-.app {
-  width: min(100%, 520px);
-  text-align: center;
-}
+    .app {
+      width: min(100%, 520px);
+      text-align: center;
+    }
 
-h1 { font-size: 1.5rem; margin-bottom: 5px; }
-.sub { color: #bbb; margin-bottom: 20px; }
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 5px;
+    }
 
-.stage {
-  min-height: 390px;
-  display: grid;
-  place-items: center;
-  background: radial-gradient(ellipse at center, #383838, #202020 70%);
-  border: 1px solid #555;
-  border-radius: 22px;
-  overflow: hidden;
-  padding: 22px;
-}
+    .sub {
+      color: #bbb;
+      margin-bottom: 20px;
+    }
 
-.monster {
-  position: relative;
-  width: min(82vw, 360px);
-  aspect-ratio: 921 / 936;
-  animation: float 2.6s ease-in-out infinite;
-  transform-origin: 50% 80%;
-}
+    .stage {
+      min-height: 390px;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(ellipse at center, #383838, #202020 70%);
+      border: 1px solid #555;
+      border-radius: 22px;
+      overflow: hidden;
+      padding: 22px;
+    }
 
-.monster.still { animation: none; }
+    .monster {
+      position: relative;
+      width: min(82vw, 360px);
+      aspect-ratio: 921 / 936;
+      animation: float 2.6s ease-in-out infinite;
+      transform-origin: 50% 80%;
+    }
 
-.part {
-  position: absolute;
-  height: auto;
-  user-select: none;
-  pointer-events: none;
-}
+    .monster.still {
+      animation: none;
+    }
 
-.body { inset: 0; width: 100%; }
+    .part {
+      position: absolute;
+      height: auto;
+      user-select: none;
+      pointer-events: none;
+    }
 
-.eye {
-  width: 25.5%;
-  top: 27%;
-  transform-origin: center 55%;
-  animation: blink 4.8s infinite;
-}
+    .body {
+      inset: 0;
+      width: 100%;
+    }
 
-.eye.left { left: 24%; }
-.eye.right { left: 55%; animation-delay: .12s; }
+    .eye {
+      width: 25.5%;
+      top: 27%;
+      transform-origin: center 55%;
+      animation: blink 4.8s infinite;
+    }
 
-.mouth {
-  width: 36%;
-  left: 35%;
-  top: 54%;
-  transform-origin: center 15%;
-  animation: mouthMove 3.1s ease-in-out infinite;
-}
+    .eye.left {
+      left: 24%;
+    }
 
-@keyframes float {
-  0%,100% { transform: translateY(0) rotate(0); }
-  50% { transform: translateY(-9px) rotate(-1deg); }
-}
+    .eye.right {
+      left: 55%;
+      animation-delay: .12s;
+    }
 
-@keyframes blink {
-  0%,43%,47%,100% { transform: scaleY(1); }
-  45% { transform: scaleY(.12); }
-}
+    .mouth {
+      width: 36%;
+      left: 35%;
+      top: 54%;
+      transform-origin: center 15%;
+      animation: mouthMove 3.1s ease-in-out infinite;
+    }
 
-@keyframes mouthMove {
-  0%,100% { transform: translateY(0) scaleY(1); }
-  50% { transform: translateY(3px) scaleY(.94); }
-}
+    @keyframes float {
 
-.expression-surprised .eye { animation-name: surprisedEyes; }
-.expression-surprised .mouth { animation-name: surprisedMouth; }
+      0%,
+      100% {
+        transform: translateY(0) rotate(0);
+      }
 
-@keyframes surprisedEyes {
-  0%,100% { transform: scaleY(1.2); }
-  45% { transform: scaleY(.8); }
-}
-@keyframes surprisedMouth {
-  0%,100% { transform: scaleY(1.12); }
-  50% { transform: scaleY(1.2); }
-}
+      50% {
+        transform: translateY(-9px) rotate(-1deg);
+      }
+    }
 
-.expression-happy .eye { animation-name: happyEyes; }
-.expression-happy .mouth { animation-name: happyMouth; }
+    @keyframes blink {
 
-@keyframes happyEyes {
-  0%,100% { transform: scaleY(.65); }
-  45% { transform: scaleY(.12); }
-}
-@keyframes happyMouth {
-  0%,100% { transform: scaleY(1.08); }
-  50% { transform: translateY(4px) scaleY(.9); }
-}
+      0%,
+      43%,
+      47%,
+      100% {
+        transform: scaleY(1);
+      }
 
-.expression-sleepy .eye { animation-name: sleepyEyes; }
-.expression-sleepy .mouth { animation-name: sleepyMouth; }
+      45% {
+        transform: scaleY(.12);
+      }
+    }
 
-@keyframes sleepyEyes {
-  0%,100% { transform: scaleY(.35); }
-  50% { transform: scaleY(.25); }
-}
-@keyframes sleepyMouth {
-  0%,100% { transform: scaleY(.8); }
-  50% { transform: translateY(3px) scaleY(.7); }
-}
+    @keyframes mouthMove {
 
-.expression-sad .eye { animation-name: sadEyes; }
-.expression-sad .mouth { animation-name: sadMouth; }
+      0%,
+      100% {
+        transform: translateY(0) scaleY(1);
+      }
 
-@keyframes sadEyes {
-  0%,100% { transform: translateY(3px) scaleY(.8); }
-  50% { transform: translateY(5px) scaleY(.7); }
-}
-@keyframes sadMouth {
-  0%,100% { transform: translateY(5px) scaleY(.7); }
-  50% { transform: translateY(7px) scaleY(.65); }
-}
+      50% {
+        transform: translateY(3px) scaleY(.94);
+      }
+    }
 
-.monster.still .eye,
-.monster.still .mouth {
-  animation: none !important;
-}
+    .expression-surprised .eye {
+      animation-name: surprisedEyes;
+    }
 
-.monster.wiggling { animation: wiggle .65s ease-in-out; }
+    .expression-surprised .mouth {
+      animation-name: surprisedMouth;
+    }
 
-@keyframes wiggle {
-  0%,100% { transform: rotate(0); }
-  20% { transform: rotate(-7deg); }
-  40% { transform: rotate(7deg); }
-  60% { transform: rotate(-5deg); }
-  80% { transform: rotate(4deg); }
-}
+    @keyframes surprisedEyes {
 
-/* 感情に合わせて出る演出 */
-.effect-layer {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: visible;
-}
+      0%,
+      100% {
+        transform: scaleY(1.2);
+      }
 
-.effect {
-  position: absolute;
-  display: block;
-  font-weight: 900;
-  line-height: 1;
-  opacity: 0;
-  user-select: none;
-  filter: drop-shadow(0 3px 3px rgba(0,0,0,.35));
-}
+      45% {
+        transform: scaleY(.8);
+      }
+    }
 
-.effect.show { animation: effectPop 1.45s ease-out both; }
+    @keyframes surprisedMouth {
 
-@keyframes effectPop {
-  0% { opacity: 0; transform: translateY(12px) scale(.35) rotate(-12deg); }
-  18% { opacity: 1; transform: translateY(-3px) scale(1.18) rotate(8deg); }
-  38% { opacity: 1; transform: translateY(-7px) scale(1) rotate(-5deg); }
-  100% { opacity: 0; transform: translateY(-34px) scale(.8) rotate(10deg); }
-}
+      0%,
+      100% {
+        transform: scaleY(1.12);
+      }
 
-.effect-surprise {
-  top: 3%; right: 2%;
-  font-size: clamp(34px, 10vw, 48px);
-  color: #ffe16b;
-  -webkit-text-stroke: 1px #8b5b16;
-}
-.effect-happy-left {
-  top: 25%; left: -4%;
-  font-size: 37px; color: #ffe66d;
-}
-.effect-happy-right {
-  top: 18%; right: -5%;
-  font-size: 42px; color: #a9eaff;
-  animation-delay: .12s !important;
-}
-.effect-sleepy {
-  top: 0%; right: 1%;
-  font-size: clamp(29px, 8vw, 40px);
-  color: #b9c7ff;
-  font-style: italic;
-}
-.effect-sad {
-  top: 34%; left: 5%;
-  font-size: 42px; color: #80d8ff;
-}
-.effect-worried {
-  top: 18%; left: -3%;
-  font-size: 42px; color: #76dfff;
-}
-.effect-normal {
-  top: 5%; left: 4%;
-  font-size: 26px; color: #f5d6ad;
-}
+      50% {
+        transform: scaleY(1.2);
+      }
+    }
 
-.controls {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 9px;
-  margin-top: 16px;
-}
+    .expression-happy .eye {
+      animation-name: happyEyes;
+    }
 
-button {
-  border: 0;
-  border-radius: 999px;
-  padding: 11px 15px;
-  font-size: .9rem;
-  font-weight: 650;
-  cursor: pointer;
-  background: #f4e9e1;
-  color: #302722;
-}
+    .expression-happy .mouth {
+      animation-name: happyMouth;
+    }
 
-button.secondary {
-  background: #454545;
-  color: white;
-  border: 1px solid #777;
-}
+    @keyframes happyEyes {
 
-button.active {
-  background: #d9b7ff;
-  color: #30203f;
-}
+      0%,
+      100% {
+        transform: scaleY(.65);
+      }
 
-button:active { transform: scale(.96); }
+      45% {
+        transform: scaleY(.12);
+      }
+    }
 
-.note {
-  color: #bbb;
-  font-size: .85rem;
-  margin-top: 16px;
-  line-height: 1.6;
-}
-</style>
+    @keyframes happyMouth {
+
+      0%,
+      100% {
+        transform: scaleY(1.08);
+      }
+
+      50% {
+        transform: translateY(4px) scaleY(.9);
+      }
+    }
+
+    .expression-sleepy .eye {
+      animation-name: sleepyEyes;
+    }
+
+    .expression-sleepy .mouth {
+      animation-name: sleepyMouth;
+    }
+
+    @keyframes sleepyEyes {
+
+      0%,
+      100% {
+        transform: scaleY(.35);
+      }
+
+      50% {
+        transform: scaleY(.25);
+      }
+    }
+
+    @keyframes sleepyMouth {
+
+      0%,
+      100% {
+        transform: scaleY(.8);
+      }
+
+      50% {
+        transform: translateY(3px) scaleY(.7);
+      }
+    }
+
+    .expression-sad .eye {
+      animation-name: sadEyes;
+    }
+
+    .expression-sad .mouth {
+      animation-name: sadMouth;
+    }
+
+    @keyframes sadEyes {
+
+      0%,
+      100% {
+        transform: translateY(3px) scaleY(.8);
+      }
+
+      50% {
+        transform: translateY(5px) scaleY(.7);
+      }
+    }
+
+    @keyframes sadMouth {
+
+      0%,
+      100% {
+        transform: translateY(5px) scaleY(.7);
+      }
+
+      50% {
+        transform: translateY(7px) scaleY(.65);
+      }
+    }
+
+    .monster.still .eye,
+    .monster.still .mouth {
+      animation: none !important;
+    }
+
+    .monster.wiggling {
+      animation: wiggle .65s ease-in-out;
+    }
+
+    @keyframes wiggle {
+
+      0%,
+      100% {
+        transform: rotate(0);
+      }
+
+      20% {
+        transform: rotate(-7deg);
+      }
+
+      40% {
+        transform: rotate(7deg);
+      }
+
+      60% {
+        transform: rotate(-5deg);
+      }
+
+      80% {
+        transform: rotate(4deg);
+      }
+    }
+
+    /* 感情エフェクト */
+    .effect-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: visible;
+    }
+
+    .effect {
+      position: absolute;
+      display: block;
+      font-weight: 900;
+      line-height: 1;
+      opacity: 0;
+      user-select: none;
+      filter: drop-shadow(0 3px 3px rgba(0, 0, 0, .35));
+    }
+
+    .effect.show {
+      animation: effectPop 1.45s ease-out both;
+    }
+
+    @keyframes effectPop {
+      0% {
+        opacity: 0;
+        transform: translateY(12px) scale(.35) rotate(-12deg);
+      }
+
+      18% {
+        opacity: 1;
+        transform: translateY(-3px) scale(1.18) rotate(8deg);
+      }
+
+      38% {
+        opacity: 1;
+        transform: translateY(-7px) scale(1) rotate(-5deg);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translateY(-34px) scale(.8) rotate(10deg);
+      }
+    }
+
+    .effect-surprise {
+      top: 3%;
+      right: 2%;
+      font-size: clamp(34px, 10vw, 48px);
+      color: #ffe16b;
+      -webkit-text-stroke: 1px #8b5b16;
+    }
+
+    .effect-happy-left {
+      top: 25%;
+      left: -4%;
+      font-size: 37px;
+      color: #ffe66d;
+    }
+
+    .effect-happy-right {
+      top: 18%;
+      right: -5%;
+      font-size: 42px;
+      color: #a9eaff;
+      animation-delay: .12s !important;
+    }
+
+    .effect-sleepy {
+      top: 0%;
+      right: 1%;
+      font-size: clamp(29px, 8vw, 40px);
+      color: #b9c7ff;
+      font-style: italic;
+    }
+
+    .effect-sad {
+      top: 34%;
+      left: 5%;
+      font-size: 42px;
+      color: #80d8ff;
+    }
+
+    .effect-normal {
+      top: 5%;
+      left: 4%;
+      font-size: 26px;
+      color: #f5d6ad;
+    }
+
+    /* カメラ撮影エリア */
+    .camera-panel {
+      margin-top: 22px;
+      padding: 16px;
+      background: #292929;
+      border: 1px solid #555;
+      border-radius: 18px;
+      text-align: center;
+    }
+
+    .camera-panel h2 {
+      margin: 0 0 8px;
+      font-size: 1.15rem;
+    }
+
+    .camera-help {
+      color: #bbb;
+      font-size: .82rem;
+      line-height: 1.55;
+      margin: 0 0 12px;
+    }
+
+    .camera-view {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      background: #111;
+      border-radius: 12px;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      border: 1px solid #555;
+    }
+
+    .camera-view video,
+    .camera-view img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .camera-placeholder {
+      color: #999;
+      font-size: .9rem;
+      padding: 18px;
+    }
+
+    .camera-buttons {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-top: 12px;
+    }
+
+    .camera-status {
+      min-height: 1.5em;
+      color: #d8c4ff;
+      font-size: .85rem;
+      line-height: 1.5;
+      margin: 12px 0 0;
+      overflow-wrap: anywhere;
+    }
+
+    .camera-panel button:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-top: 16px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 11px 15px;
+      font-size: .9rem;
+      font-weight: 650;
+      cursor: pointer;
+      background: #f4e9e1;
+      color: #302722;
+    }
+
+    button.secondary {
+      background: #454545;
+      color: white;
+      border: 1px solid #777;
+    }
+
+    button.active {
+      background: #d9b7ff;
+      color: #30203f;
+    }
+
+    button:active {
+      transform: scale(.96);
+    }
+
+    .note {
+      color: #bbb;
+      font-size: .85rem;
+      margin-top: 16px;
+      line-height: 1.6;
+    }
+  </style>
 </head>
 
 <body>
-<main class="app">
-  <h1>ぬのモン</h1>
-  <p class="sub">クリーム色の子・感情演出つき試作</p>
+  <main class="app">
 
-  <section class="stage">
-    <div class="monster" id="monster">
-      <img class="part body" src="body.png" alt="">
-      <img class="part eye left" src="eye_left.png" alt="">
-      <img class="part eye right" src="eye_right.png" alt="">
-      <img class="part mouth" src="mouth.png" alt="">
-      <div class="effect-layer" id="effectLayer" aria-hidden="true"></div>
+    <h1>ぬのモン</h1>
+    <p class="sub">クリーム色の子・カメラ撮影試作</p>
+
+    <section class="stage">
+      <div class="monster" id="monster">
+        <img class="part body" src="body.png" alt="">
+        <img class="part eye left" src="eye_left.png" alt="">
+        <img class="part eye right" src="eye_right.png" alt="">
+        <img class="part mouth" src="mouth.png" alt="">
+        <div class="effect-layer" id="effectLayer" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <!-- カメラ撮影 -->
+    <section class="camera-panel">
+      <h2>📷 フェルトのモンスターを撮影</h2>
+      <p class="camera-help">
+        フェルトのモンスターをカメラに映して撮影してみよう！<br>
+        今回は撮影できるところまでの試作だよ。
+      </p>
+
+      <div class="camera-view">
+        <div class="camera-placeholder" id="cameraPlaceholder">
+          「カメラを起動」を押すと、ここに映像が表示されるよ
+        </div>
+        <video id="cameraVideo" autoplay muted playsinline hidden></video>
+        <img id="capturedImage" alt="撮影したフェルトモンスター" hidden>
+      </div>
+
+      <div class="camera-buttons">
+        <button id="startCamera">カメラを起動</button>
+        <button id="takePhoto" disabled>撮影する</button>
+        <button id="retakePhoto" class="secondary" hidden>撮り直す</button>
+        <button id="stopCamera" class="secondary" disabled>カメラを終了</button>
+      </div>
+
+      <p class="camera-status" id="cameraStatus" aria-live="polite">
+        カメラはまだ起動していないよ。
+      </p>
+      <canvas id="photoCanvas" hidden></canvas>
+    </section>
+
+    <div class="controls" id="expressions">
+      <button class="active" data-expression="normal">😊 いつもの顔</button>
+      <button data-expression="surprised">😲 びっくり</button>
+      <button data-expression="happy">😄 にっこり</button>
+      <button data-expression="sleepy">😴 ねむい</button>
+      <button data-expression="sad">🥺 しょんぼり</button>
     </div>
-  </section>
 
-  <div class="controls" id="expressions">
-    <button class="active" data-expression="normal">😊 いつもの顔</button>
-    <button data-expression="surprised">😲 びっくり</button>
-    <button data-expression="happy">😄 にっこり</button>
-    <button data-expression="sleepy">😴 ねむい</button>
-    <button data-expression="sad">🥺 しょんぼり</button>
-  </div>
+    <div class="controls">
+      <button id="auto">おまかせ OFF</button>
+      <button id="toggle">動きを止める</button>
+      <button class="secondary" id="wiggle">ぷるぷる！</button>
+    </div>
 
-  <div class="controls">
-    <button id="auto">おまかせ OFF</button>
-    <button id="toggle">動きを止める</button>
-    <button class="secondary" id="wiggle">ぷるぷる！</button>
-  </div>
+    <p class="note" id="note">好きな表情を選んでみよう！</p>
 
-  <p class="note" id="note">好きな表情を選んでみよう！</p>
-</main>
+  </main>
 
-<script>
-const monster = document.getElementById("monster");
-const toggle = document.getElementById("toggle");
-const wiggle = document.getElementById("wiggle");
-const autoButton = document.getElementById("auto");
-const note = document.getElementById("note");
-const effectLayer = document.getElementById("effectLayer");
-const buttons = document.querySelectorAll("[data-expression]");
+  <script>
+    const monster = document.getElementById("monster");
+    const toggle = document.getElementById("toggle");
+    const wiggle = document.getElementById("wiggle");
+    const autoButton = document.getElementById("auto");
+    const note = document.getElementById("note");
+    const effectLayer = document.getElementById("effectLayer");
+    const buttons = document.querySelectorAll("[data-expression]");
 
-const expressions = {
-  normal: {
-    message: "いつもの顔だよ！",
-    effects: [
-      { text: "ぷるん", className: "effect-normal" }
-    ]
-  },
-  surprised: {
-    message: "びっくりした！",
-    effects: [
-      { text: "!? ", className: "effect-surprise" },
-      { text: "ぴょこっ", className: "effect-normal" }
-    ]
-  },
-  happy: {
-    message: "ごきげんだよ！",
-    effects: [
-      { text: "✦", className: "effect-happy-left" },
-      { text: "✧", className: "effect-happy-right" },
-      { text: "キラキラ", className: "effect-normal" }
-    ]
-  },
-  sleepy: {
-    message: "もう眠たいなぁ……",
-    effects: [
-      { text: "Zzz", className: "effect-sleepy" }
-    ]
-  },
-  sad: {
-    message: "ちょっと元気がないみたい……",
-    effects: [
-      { text: "💧", className: "effect-sad" },
-      { text: "しくしく", className: "effect-normal" }
-    ]
-  }
-};
+    const expressions = {
+      normal: {
+        message: "いつもの顔だよ！",
+        effects: [
+          { text: "ぷるん", className: "effect-normal" }
+        ]
+      },
+      surprised: {
+        message: "びっくりした！",
+        effects: [
+          { text: "!? ", className: "effect-surprise" },
+          { text: "ぴょこっ", className: "effect-normal" }
+        ]
+      },
+      happy: {
+        message: "ごきげんだよ！",
+        effects: [
+          { text: "✦", className: "effect-happy-left" },
+          { text: "✧", className: "effect-happy-right" },
+          { text: "キラキラ", className: "effect-normal" }
+        ]
+      },
+      sleepy: {
+        message: "もう眠たいなぁ……",
+        effects: [
+          { text: "Zzz", className: "effect-sleepy" }
+        ]
+      },
+      sad: {
+        message: "ちょっと元気がないみたい……",
+        effects: [
+          { text: "💧", className: "effect-sad" },
+          { text: "しくしく", className: "effect-normal" }
+        ]
+      }
+    };
 
-const expressionNames = Object.keys(expressions);
-let currentExpression = "normal";
-let autoMode = false;
-let autoTimer = null;
-let wiggleTimer = null;
-let effectTimer = null;
+    const expressionNames = Object.keys(expressions);
 
-function showEffects(name) {
-  clearTimeout(effectTimer);
-  effectLayer.innerHTML = "";
+    let currentExpression = "normal";
+    let autoMode = false;
+    let autoTimer = null;
+    let wiggleTimer = null;
+    let effectTimer = null;
 
-  const items = expressions[name].effects;
-  items.forEach((item, index) => {
-    const element = document.createElement("span");
-    element.className = "effect " + item.className;
-    element.textContent = item.text;
-    effectLayer.appendChild(element);
+    function showEffects(name) {
+      clearTimeout(effectTimer);
+      effectLayer.innerHTML = "";
 
-    // 同じ表情を選び直してもアニメーションが再生されるようにする
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => element.classList.add("show"));
-    });
-  });
+      const items = expressions[name].effects;
 
-  effectTimer = setTimeout(() => {
-    effectLayer.innerHTML = "";
-  }, 1650);
-}
+      items.forEach(item => {
+        const element = document.createElement("span");
+        element.className = "effect " + item.className;
+        element.textContent = item.text;
+        effectLayer.appendChild(element);
 
-function changeExpression(name) {
-  monster.classList.remove(
-    "expression-surprised",
-    "expression-happy",
-    "expression-sleepy",
-    "expression-sad"
-  );
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            element.classList.add("show");
+          });
+        });
+      });
 
-  if (name !== "normal") {
-    monster.classList.add("expression-" + name);
-  }
-
-  currentExpression = name;
-
-  buttons.forEach(button => {
-    button.classList.toggle(
-      "active",
-      button.dataset.expression === name
-    );
-  });
-
-  note.textContent = expressions[name].message;
-  showEffects(name);
-}
-
-// 手動で表情を選ぶ
-buttons.forEach(button => {
-  button.addEventListener("click", () => {
-    stopAuto();
-    changeExpression(button.dataset.expression);
-  });
-});
-
-// 自動行動
-function startAuto() {
-  if (autoMode) return;
-
-  autoMode = true;
-  autoButton.textContent = "おまかせ ON";
-  autoButton.classList.add("active");
-  note.textContent = "自由気ままに遊んでいるよ！";
-  scheduleAction();
-}
-
-function stopAuto() {
-  autoMode = false;
-  clearTimeout(autoTimer);
-  clearTimeout(wiggleTimer);
-  monster.classList.remove("wiggling");
-  autoButton.textContent = "おまかせ OFF";
-  autoButton.classList.remove("active");
-}
-
-function scheduleAction() {
-  clearTimeout(autoTimer);
-  if (!autoMode) return;
-
-  const delay = 3000 + Math.random() * 3000;
-
-  autoTimer = setTimeout(() => {
-    if (!autoMode) return;
-
-    const randomIndex = Math.floor(
-      Math.random() * expressionNames.length
-    );
-    const selected = expressionNames[randomIndex];
-
-    changeExpression(selected);
-
-    if (Math.random() < 0.25) {
-      playWiggle();
+      effectTimer = setTimeout(() => {
+        effectLayer.innerHTML = "";
+      }, 1650);
     }
 
-    scheduleAction();
-  }, delay);
-}
+    function changeExpression(name) {
+      monster.classList.remove(
+        "expression-surprised",
+        "expression-happy",
+        "expression-sleepy",
+        "expression-sad"
+      );
 
-autoButton.addEventListener("click", () => {
-  if (autoMode) {
-    stopAuto();
-    note.textContent = "おまかせを終了したよ！";
-  } else {
-    startAuto();
-  }
-});
+      if (name !== "normal") {
+        monster.classList.add("expression-" + name);
+      }
 
-// 動きを止める・再開する
-toggle.addEventListener("click", () => {
-  const stopped = monster.classList.toggle("still");
+      currentExpression = name;
 
-  toggle.textContent = stopped
-    ? "動かす"
-    : "動きを止める";
+      buttons.forEach(button => {
+        button.classList.toggle(
+          "active",
+          button.dataset.expression === name
+        );
+      });
 
-  if (stopped) {
-    monster.classList.remove("wiggling");
-  }
-});
+      note.textContent = expressions[name].message;
+      showEffects(name);
+    }
 
-// ぷるぷる動作
-function playWiggle() {
-  monster.classList.remove("still");
-  toggle.textContent = "動きを止める";
-  monster.classList.remove("wiggling");
-  void monster.offsetWidth;
-  monster.classList.add("wiggling");
+    // 手動で表情を選ぶ
+    buttons.forEach(button => {
+      button.addEventListener("click", () => {
+        stopAuto();
+        changeExpression(button.dataset.expression);
+      });
+    });
 
-  clearTimeout(wiggleTimer);
-  wiggleTimer = setTimeout(() => {
-    monster.classList.remove("wiggling");
-  }, 700);
-}
+    // 自動行動
+    function startAuto() {
+      if (autoMode) return;
 
-wiggle.addEventListener("click", playWiggle);
+      autoMode = true;
+      autoButton.textContent = "おまかせ ON";
+      autoButton.classList.add("active");
+      note.textContent = "自由気ままに遊んでいるよ！";
 
-// 最初の表情にも演出を表示
-showEffects("normal");
-</script>
+      scheduleAction();
+    }
+
+    function stopAuto() {
+      autoMode = false;
+
+      clearTimeout(autoTimer);
+      clearTimeout(wiggleTimer);
+
+      monster.classList.remove("wiggling");
+
+      autoButton.textContent = "おまかせ OFF";
+      autoButton.classList.remove("active");
+    }
+
+    function scheduleAction() {
+      clearTimeout(autoTimer);
+
+      if (!autoMode) return;
+
+      const delay = 3000 + Math.random() * 3000;
+
+      autoTimer = setTimeout(() => {
+        if (!autoMode) return;
+
+        const randomIndex = Math.floor(
+          Math.random() * expressionNames.length
+        );
+
+        const selected = expressionNames[randomIndex];
+
+        changeExpression(selected);
+
+        if (Math.random() < 0.25) {
+          playWiggle();
+        }
+
+        scheduleAction();
+      }, delay);
+    }
+
+    autoButton.addEventListener("click", () => {
+      if (autoMode) {
+        stopAuto();
+        note.textContent = "おまかせを終了したよ！";
+      } else {
+        startAuto();
+      }
+    });
+
+    // 動きを止める・再開する
+    toggle.addEventListener("click", () => {
+      const stopped = monster.classList.toggle("still");
+
+      toggle.textContent = stopped
+        ? "動かす"
+        : "動きを止める";
+
+      if (stopped) {
+        monster.classList.remove("wiggling");
+      }
+    });
+
+    // ぷるぷる動作
+    function playWiggle() {
+      monster.classList.remove("still");
+      toggle.textContent = "動きを止める";
+
+      monster.classList.remove("wiggling");
+      void monster.offsetWidth;
+      monster.classList.add("wiggling");
+
+      clearTimeout(wiggleTimer);
+
+      wiggleTimer = setTimeout(() => {
+        monster.classList.remove("wiggling");
+      }, 700);
+    }
+
+    wiggle.addEventListener("click", playWiggle);
+
+
+    // ==========================
+    // カメラ撮影機能
+    // ==========================
+
+    const cameraVideo = document.getElementById("cameraVideo");
+    const cameraPlaceholder = document.getElementById("cameraPlaceholder");
+    const capturedImage = document.getElementById("capturedImage");
+    const photoCanvas = document.getElementById("photoCanvas");
+
+    const startCameraButton = document.getElementById("startCamera");
+    const takePhotoButton = document.getElementById("takePhoto");
+    const retakePhotoButton = document.getElementById("retakePhoto");
+    const stopCameraButton = document.getElementById("stopCamera");
+    const cameraStatus = document.getElementById("cameraStatus");
+
+    let cameraStream = null;
+
+    // カメラを起動する
+    async function startCamera() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        cameraStatus.textContent =
+          "この環境ではカメラを起動できないよ。HTTPSのページで開いてね。";
+        return;
+      }
+
+      startCameraButton.disabled = true;
+      cameraStatus.textContent =
+        "カメラを起動中……ブラウザの許可を確認してね。";
+
+      try {
+        // スマホでは背面カメラを優先する
+        try {
+          cameraStream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: { ideal: "environment" },
+              width: { ideal: 1280 },
+              height: { ideal: 960 }
+            },
+            audio: false
+          });
+        } catch (firstError) {
+          // 背面カメラが使えない場合は通常カメラ
+          cameraStream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false
+          });
+        }
+
+        cameraVideo.srcObject = cameraStream;
+        cameraVideo.hidden = false;
+        capturedImage.hidden = true;
+        cameraPlaceholder.hidden = true;
+
+        await cameraVideo.play();
+
+        takePhotoButton.disabled = false;
+        stopCameraButton.disabled = false;
+        retakePhotoButton.hidden = true;
+
+        cameraStatus.textContent =
+          "カメラが起動したよ！フェルトのモンスターを映して「撮影する」を押してね。";
+
+      } catch (error) {
+        startCameraButton.disabled = false;
+        cameraStream = null;
+
+        if (
+          error.name === "NotAllowedError" ||
+          error.name === "PermissionDeniedError"
+        ) {
+          cameraStatus.textContent =
+            "カメラの使用が許可されていないよ。ブラウザの設定からカメラを許可してね。";
+
+        } else if (
+          error.name === "NotFoundError" ||
+          error.name === "DevicesNotFoundError"
+        ) {
+          cameraStatus.textContent =
+            "カメラが見つからなかったよ。カメラが接続されているか確認してね。";
+
+        } else if (error.name === "NotReadableError") {
+          cameraStatus.textContent =
+            "カメラをほかのアプリが使っているかも。ほかのカメラアプリを閉じてね。";
+
+        } else {
+          cameraStatus.textContent =
+            "カメラを起動できなかったよ。HTTPSとブラウザのカメラ許可を確認してね。";
+        }
+
+        console.error("Camera error:", error);
+      }
+    }
+
+    // 写真を撮る
+    function takePhoto() {
+      if (!cameraStream || !cameraVideo.videoWidth) {
+        cameraStatus.textContent = "先にカメラを起動してね。";
+        return;
+      }
+
+      const width = cameraVideo.videoWidth;
+      const height = cameraVideo.videoHeight;
+
+      photoCanvas.width = width;
+      photoCanvas.height = height;
+
+      const context = photoCanvas.getContext("2d");
+
+      context.drawImage(
+        cameraVideo,
+        0,
+        0,
+        width,
+        height
+      );
+
+      capturedImage.src = photoCanvas.toDataURL("image/jpeg", 0.92);
+      capturedImage.hidden = false;
+      cameraVideo.hidden = true;
+
+      takePhotoButton.disabled = true;
+      retakePhotoButton.hidden = false;
+
+      cameraStatus.textContent =
+        "撮影できたよ！画像を確認して、撮り直すこともできるよ。";
+    }
+
+    // 撮り直す
+    function retakePhoto() {
+      capturedImage.hidden = true;
+      cameraVideo.hidden = false;
+
+      takePhotoButton.disabled = false;
+      retakePhotoButton.hidden = true;
+
+      cameraStatus.textContent = "もう一度撮影できるよ！";
+    }
+
+    // カメラを終了する
+    function stopCamera() {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+      }
+
+      cameraVideo.srcObject = null;
+      cameraVideo.hidden = true;
+      capturedImage.hidden = true;
+      cameraPlaceholder.hidden = false;
+
+      startCameraButton.disabled = false;
+      takePhotoButton.disabled = true;
+      retakePhotoButton.hidden = true;
+      stopCameraButton.disabled = true;
+
+      cameraStatus.textContent = "カメラを終了したよ。";
+    }
+
+    startCameraButton.addEventListener("click", startCamera);
+    takePhotoButton.addEventListener("click", takePhoto);
+    retakePhotoButton.addEventListener("click", retakePhoto);
+    stopCameraButton.addEventListener("click", stopCamera);
+
+    // ページを閉じるときにカメラを終了
+    window.addEventListener("pagehide", () => {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+      }
+    });
+
+    // 最初の表情にも演出を表示
+    showEffects("normal");
+
+  </script>
 </body>
+
 </html>
