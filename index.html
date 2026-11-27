@@ -1,459 +1,767 @@
-
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ぬのモン STEP 9</title>
-<style>
-*{box-sizing:border-box}
-[hidden]{display:none!important}
-body{margin:0;padding:14px;background:#171717;color:white;font-family:system-ui,sans-serif}
-.app{width:min(100%,560px);margin:auto;text-align:center}
-h1{margin:8px 0}
-.sub,.help,.status{color:#bbb;font-size:.88rem;line-height:1.6}
-.panel{background:#292929;border:1px solid #555;border-radius:18px;padding:14px;margin:16px 0}
-.stage{height:320px;display:grid;place-items:center;background:radial-gradient(#444,#202020);border-radius:16px;overflow:hidden}
-.monster{position:relative;width:min(75vw,280px);aspect-ratio:921/936;animation:float 2.6s ease-in-out infinite}
-.monster img{position:absolute;height:auto;pointer-events:none}
-.body{inset:0;width:100%}
-.eye{width:25.5%;top:27%;animation:blink 4.8s infinite}
-.eye.left{left:24%}.eye.right{left:55%}
-.mouth{width:36%;left:35%;top:54%;animation:mouth 3s ease-in-out infinite}
-@keyframes float{50%{transform:translateY(-8px) rotate(-1deg)}}
-@keyframes blink{0%,43%,47%,100%{transform:scaleY(1)}45%{transform:scaleY(.12)}}
-@keyframes mouth{50%{transform:translateY(3px) scaleY(.94)}}
-.monster.still,.monster.still img{animation:none!important}
-button{border:0;border-radius:30px;padding:11px 14px;margin:4px;background:#f4e9e1;color:#302722;font-weight:650;cursor:pointer}
-button.secondary{background:#454545;color:white;border:1px solid #777}
-button.active{background:#d9b7ff;color:#30203f}
-button:disabled{opacity:.4}
-.buttons{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;margin-top:10px}
-.camera-view{width:100%;aspect-ratio:4/3;min-height:200px;background:#111;border-radius:12px;overflow:hidden;display:grid;place-items:center}
-video{width:100%;height:100%;object-fit:contain}
-.photo-area{position:relative;width:100%;margin-top:12px;line-height:0;background:#111;border-radius:12px;overflow:hidden}
-.photo-area img{display:block;width:100%;height:auto;cursor:crosshair;touch-action:manipulation}
-.photo-area canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-.part-buttons{display:flex;flex-wrap:wrap;justify-content:center}
-.result{color:#a9edb5;font-size:.9rem;line-height:1.6}
-input{width:100%;padding:13px;border-radius:12px;border:1px solid #777;background:#171717;color:white;font-size:1rem}
-.saved-item{display:flex;align-items:center;gap:8px;padding:10px;margin-top:9px;background:#202020;border:1px solid #555;border-radius:12px;text-align:left}
-.saved-name{flex:1;min-width:0;overflow-wrap:anywhere}
-.saved-date{font-size:.75rem;color:#aaa}
-.saved-item button{margin:2px;padding:9px 11px}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ぬのモン STEP 9</title>
+  <style>
+    * {
+      box-sizing: border-box
+    }
+
+    [hidden] {
+      display: none !important
+    }
+
+    body {
+      margin: 0;
+      padding: 14px;
+      background: #171717;
+      color: white;
+      font-family: system-ui, sans-serif
+    }
+
+    .app {
+      width: min(100%, 560px);
+      margin: auto;
+      text-align: center
+    }
+
+    h1 {
+      margin: 8px 0
+    }
+
+    .sub,
+    .help,
+    .status {
+      color: #bbb;
+      font-size: .88rem;
+      line-height: 1.6
+    }
+
+    .panel {
+      background: #292929;
+      border: 1px solid #555;
+      border-radius: 18px;
+      padding: 14px;
+      margin: 16px 0
+    }
+
+    .stage {
+      height: 320px;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(#444, #202020);
+      border-radius: 16px;
+      overflow: hidden
+    }
+
+    .monster {
+      position: relative;
+      width: min(75vw, 280px);
+      aspect-ratio: 921/936;
+      animation: float 2.6s ease-in-out infinite
+    }
+
+    .monster img {
+      position: absolute;
+      height: auto;
+      pointer-events: none
+    }
+
+    .body {
+      inset: 0;
+      width: 100%
+    }
+
+    .eye {
+      width: 25.5%;
+      top: 27%;
+      animation: blink 4.8s infinite;
+      object-fit: contain
+    }
+
+    .eye.left {
+      left: 24%
+    }
+
+    .eye.right {
+      left: 55%
+    }
+
+    .mouth {
+      width: 36%;
+      left: 35%;
+      top: 54%;
+      animation: mouth 3s ease-in-out infinite;
+      object-fit: contain
+    }
+
+    @keyframes float {
+      50% {
+        transform: translateY(-8px) rotate(-1deg)
+      }
+    }
+
+    @keyframes blink {
+
+      0%,
+      43%,
+      47%,
+      100% {
+        transform: scaleY(1)
+      }
+
+      45% {
+        transform: scaleY(.12)
+      }
+    }
+
+    @keyframes mouth {
+      50% {
+        transform: translateY(3px) scaleY(.94)
+      }
+    }
+
+    .monster.still,
+    .monster.still img {
+      animation: none !important
+    }
+
+    button {
+      border: 0;
+      border-radius: 30px;
+      padding: 11px 14px;
+      margin: 4px;
+      background: #f4e9e1;
+      color: #302722;
+      font-weight: 650;
+      cursor: pointer
+    }
+
+    button.secondary {
+      background: #454545;
+      color: white;
+      border: 1px solid #777
+    }
+
+    button.active {
+      background: #d9b7ff;
+      color: #30203f
+    }
+
+    button:disabled {
+      opacity: .4
+    }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 4px;
+      margin-top: 10px
+    }
+
+    .camera-view {
+      width: 100%;
+      aspect-ratio: 4/3;
+      min-height: 200px;
+      background: #111;
+      border-radius: 12px;
+      overflow: hidden;
+      display: grid;
+      place-items: center
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain
+    }
+
+    .photo-area {
+      position: relative;
+      width: 100%;
+      margin-top: 12px;
+      line-height: 0;
+      background: #111;
+      border-radius: 12px;
+      overflow: hidden
+    }
+
+    .photo-area img {
+      display: block;
+      width: 100%;
+      height: auto;
+      cursor: crosshair;
+      touch-action: manipulation
+    }
+
+    .photo-area canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none
+    }
+
+    .part-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center
+    }
+
+    .result {
+      color: #a9edb5;
+      font-size: .9rem;
+      line-height: 1.6
+    }
+
+    input {
+      width: 100%;
+      padding: 13px;
+      border-radius: 12px;
+      border: 1px solid #777;
+      background: #171717;
+      color: white;
+      font-size: 1rem
+    }
+
+    .saved-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px;
+      margin-top: 9px;
+      background: #202020;
+      border: 1px solid #555;
+      border-radius: 12px;
+      text-align: left
+    }
+
+    .saved-name {
+      flex: 1;
+      min-width: 0;
+      overflow-wrap: anywhere
+    }
+
+    .saved-date {
+      font-size: .75rem;
+      color: #aaa
+    }
+
+    .saved-item button {
+      margin: 2px;
+      padding: 9px 11px
+    }
+  </style>
 </head>
+
 <body>
-<main class="app">
-<h1>🧵 ぬのモン</h1>
-<p class="sub">STEP 9：モンスター保存・呼び出し</p>
+  <main class="app">
+    <h1>🧵 ぬのモン</h1>
+    <p class="sub">STEP 10：フェルトパーツの切り抜き・保存</p>
 
-<section class="panel">
-<h2>デジタルモンスター</h2>
-<div class="stage">
- <div class="monster" id="monster">
-  <img class="body" src="body.png" alt="">
-  <img class="eye left" id="digitalLeft" src="eye_left.png" alt="">
-  <img class="eye right" id="digitalRight" src="eye_right.png" alt="">
-  <img class="mouth" id="digitalMouth" src="mouth.png" alt="">
- </div>
-</div>
-<p class="help" id="displayName">新しいモンスター</p>
-<div class="buttons">
- <button class="secondary" id="resetDigital">元の位置に戻す</button>
- <button id="toggleMotion">動きを止める</button>
-</div>
-</section>
+    <section class="panel">
+      <h2>デジタルモンスター</h2>
+      <div class="stage">
+        <div class="monster" id="monster">
+          <img class="body" src="body.png" alt="">
+          <img class="eye left" id="digitalLeft" src="eye_left.png" alt="">
+          <img class="eye right" id="digitalRight" src="eye_right.png" alt="">
+          <img class="mouth" id="digitalMouth" src="mouth.png" alt="">
+        </div>
+      </div>
+      <p class="help" id="displayName">新しいモンスター</p>
+      <div class="buttons">
+        <button class="secondary" id="resetDigital">元の位置に戻す</button>
+        <button id="toggleMotion">動きを止める</button>
+      </div>
+    </section>
 
-<section class="panel">
-<h2>📷 モンスターを撮影</h2>
-<p class="help">フェルトを背景の上に置いて撮影してね。</p>
-<div class="camera-view">
- <span id="placeholder">カメラを起動してね</span>
- <video id="video" autoplay muted playsinline hidden></video>
-</div>
-<div class="buttons">
- <button id="start">カメラを起動</button>
- <button id="shoot" disabled>撮影する</button>
- <button id="retake" class="secondary" hidden>撮り直す</button>
- <button id="stop" class="secondary" disabled>終了</button>
-</div>
-<p class="status" id="cameraStatus">カメラは停止中だよ。</p>
-<div class="photo-area" id="photoArea" hidden>
- <img id="photo" alt="撮影したモンスター">
- <canvas id="overlay"></canvas>
-</div>
-<p class="help" id="photoHelp" hidden>背景をタップしてね。</p>
-<div class="buttons">
- <button id="recognize" disabled>輪郭を認識する</button>
- <button id="clear" class="secondary" hidden>輪郭を消す</button>
-</div>
-<p class="result" id="outlineResult"></p>
-<canvas id="work" hidden></canvas>
-</section>
+    <section class="panel">
+      <h2>📷 モンスターを撮影</h2>
+      <p class="help">フェルトを背景の上に置いて撮影してね。</p>
+      <div class="camera-view">
+        <span id="placeholder">カメラを起動してね</span>
+        <video id="video" autoplay muted playsinline hidden></video>
+      </div>
+      <div class="buttons">
+        <button id="start">カメラを起動</button>
+        <button id="shoot" disabled>撮影する</button>
+        <button id="retake" class="secondary" hidden>撮り直す</button>
+        <button id="stop" class="secondary" disabled>終了</button>
+      </div>
+      <p class="status" id="cameraStatus">カメラは停止中だよ。</p>
+      <div class="photo-area" id="photoArea" hidden>
+        <img id="photo" alt="撮影したモンスター">
+        <canvas id="overlay"></canvas>
+      </div>
+      <p class="help" id="photoHelp" hidden>背景をタップしてね。</p>
+      <div class="buttons">
+        <button id="recognize" disabled>輪郭を認識する</button>
+        <button id="clear" class="secondary" hidden>輪郭を消す</button>
+      </div>
+      <p class="result" id="outlineResult"></p>
+      <canvas id="work" hidden></canvas>
+    </section>
 
-<section class="panel">
-<h2>👀 顔パーツを登録</h2>
-<p class="help">パーツを選んで、写真上の該当する場所をタップしてね。</p>
-<div class="part-buttons">
- <button data-part="left" class="active">左目</button>
- <button data-part="right">右目</button>
- <button data-part="mouth">口</button>
-</div>
-<p class="status" id="partStatus">左目を登録してね。</p>
-<div class="buttons">
- <button id="apply" disabled>デジタルモンスターに反映</button>
- <button id="resetParts" class="secondary">パーツ位置をリセット</button>
-</div>
-<p class="result" id="partResult">左目：未登録 ／ 右目：未登録 ／ 口：未登録</p>
-</section>
+    <section class="panel">
+      <h2>👀 顔パーツを登録</h2>
+      <p class="help">パーツを選んで、写真上の該当する場所をタップしてね。タップ位置の周りを切り抜いて、デジタル側に使うよ。</p>
+      <div class="part-buttons">
+        <button data-part="left" class="active">左目</button>
+        <button data-part="right">右目</button>
+        <button data-part="mouth">口</button>
+      </div>
+      <p class="status" id="partStatus">左目を登録してね。</p>
+      <div class="buttons">
+        <button id="apply" disabled>デジタルモンスターに反映</button>
+        <button id="resetParts" class="secondary">パーツ位置をリセット</button>
+      </div>
+      <p class="result" id="partResult">左目：未登録 ／ 右目：未登録 ／ 口：未登録</p>
+    </section>
 
-<section class="panel">
-<h2>💾 モンスターを保存</h2>
-<p class="help">パーツを3つ登録して反映したら、名前を付けて保存しよう！</p>
-<input id="monsterName" maxlength="24" placeholder="モンスターの名前">
-<div class="buttons">
- <button id="save" disabled>このモンスターを保存</button>
-</div>
-<p class="result" id="saveStatus"></p>
-</section>
+    <section class="panel">
+      <h2>💾 モンスターを保存</h2>
+      <p class="help">写真から切り抜いた目と口を反映して、名前を付けて保存しよう！</p>
+      <input id="monsterName" maxlength="24" placeholder="モンスターの名前">
+      <div class="buttons">
+        <button id="save" disabled>このモンスターを保存</button>
+      </div>
+      <p class="result" id="saveStatus"></p>
+    </section>
 
-<section class="panel">
-<h2>📚 保存したモンスター</h2>
-<p class="help">保存したモンスターを選ぶと、デジタル画面に呼び出せるよ。</p>
-<div id="savedList"></div>
-<p class="status" id="listStatus"></p>
-</section>
-</main>
+    <section class="panel">
+      <h2>📚 保存したモンスター</h2>
+      <p class="help">保存したモンスターを選ぶと、デジタル画面に呼び出せるよ。</p>
+      <div id="savedList"></div>
+      <p class="status" id="listStatus"></p>
+    </section>
+  </main>
 
-<script>
-const $=id=>document.getElementById(id);
-const video=$("video"),photo=$("photo"),overlay=$("overlay");
-let stream=null,backgroundPoint=null,bounds=null;
-let currentPart="left";
-let points={left:null,right:null,mouth:null};
-let motion=true;
-let currentName="";
+  <script>
+    const $ = id => document.getElementById(id);
+    const video = $("video"), photo = $("photo"), overlay = $("overlay");
+    let stream = null, backgroundPoint = null, bounds = null;
+    let currentPart = "left";
+    let points = { left: null, right: null, mouth: null };
+    let partImages = { left: null, right: null, mouth: null };
+    let motion = true;
+    let currentName = "";
 
-const STORAGE_KEY="nunomon_saved_monsters_v1";
+    const ORIGINAL_IMAGES = {
+      left: "eye_left.png",
+      right: "eye_right.png",
+      mouth: "mouth.png"
+    };
 
-function getSaved(){
- try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]")}
- catch(e){return []}
-}
-function storeSaved(list){
- localStorage.setItem(STORAGE_KEY,JSON.stringify(list));
-}
-function updatePartResult(){
- const names={left:"左目",right:"右目",mouth:"口"};
- $("partResult").textContent=Object.keys(points).map(k=>
-  names[k]+"："+(points[k]?"登録済み":"未登録")
- ).join(" ／ ");
- $("save").disabled=!(points.left&&points.right&&points.mouth);
-}
-function drawDigital(){
- const mapping=[
-  ["digitalLeft",points.left],
-  ["digitalRight",points.right],
-  ["digitalMouth",points.mouth]
- ];
- mapping.forEach(([id,p])=>{
-  const el=$(id);
-  if(!p){el.style.left="";el.style.top="";el.style.transform="";return}
-  el.style.left=(p.x*100)+"%";
-  el.style.top=(p.y*100)+"%";
-  el.style.transform="translate(-50%,-50%)";
- });
-}
-function resetParts(){
- points={left:null,right:null,mouth:null};
- drawDigital();drawMarkers();updatePartResult();
- $("apply").disabled=true;
- $("partStatus").textContent="パーツ位置をリセットしたよ。";
-}
-function resetDigital(){
- resetParts();currentName="";$("displayName").textContent="新しいモンスター";
- $("monsterName").value="";
-}
-function applyParts(){
- if(!points.left||!points.right||!points.mouth)return;
- drawDigital();
- $("displayName").textContent=currentName||"新しいモンスター";
- $("partStatus").textContent="3つのパーツを反映したよ！";
- $("saveStatus").textContent="保存できるよ。名前を付けて保存してね。";
-}
-function stopTracks(){
- if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
-}
-async function startCamera(){
- if(!navigator.mediaDevices?.getUserMedia){
-  $("cameraStatus").textContent="HTTPSのページからカメラを使ってね。";return;
- }
- $("start").disabled=true;
- $("cameraStatus").textContent="カメラを起動中……";
- try{
-  try{
-   stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:"environment"}}});
-  }catch(e){
-   stream=await navigator.mediaDevices.getUserMedia({audio:false,video:true});
-  }
-  video.srcObject=stream;video.hidden=false;$("placeholder").hidden=true;
-  await new Promise((resolve,reject)=>{
-   if(video.readyState>=1&&video.videoWidth){resolve();return}
-   video.onloadedmetadata=resolve;
-   setTimeout(()=>reject(new Error("timeout")),10000);
-  });
-  await video.play();
-  $("shoot").disabled=false;$("stop").disabled=false;
-  $("cameraStatus").textContent="カメラ起動成功！";
- }catch(e){
-  stopTracks();video.srcObject=null;video.hidden=true;
-  $("placeholder").hidden=false;$("start").disabled=false;
-  $("cameraStatus").textContent="カメラを起動できなかったよ。許可を確認してね。";
- }
-}
-function stopCamera(){
- stopTracks();video.pause();video.srcObject=null;video.hidden=true;
- $("placeholder").hidden=false;$("start").disabled=false;
- $("shoot").disabled=true;$("stop").disabled=true;
- $("cameraStatus").textContent="カメラを終了したよ。";
-}
-function shoot(){
- if(!stream||!video.videoWidth)return;
- const c=$("work"),ctx=c.getContext("2d");
- c.width=video.videoWidth;c.height=video.videoHeight;
- ctx.drawImage(video,0,0,c.width,c.height);
- photo.onload=()=>{
-  stopTracks();video.pause();video.srcObject=null;video.hidden=true;
-  $("photoArea").hidden=false;$("photoHelp").hidden=false;
-  overlay.width=photo.naturalWidth;overlay.height=photo.naturalHeight;
-  $("start").disabled=false;$("shoot").disabled=true;
-  $("stop").disabled=true;$("retake").hidden=false;
-  $("recognize").disabled=false;
-  $("cameraStatus").textContent="撮影できたよ！背景をタップしてね。";
-  clearRecognition();
- };
- photo.src=c.toDataURL("image/jpeg",.92);
-}
-async function retake(){
- $("photoArea").hidden=true;$("photoHelp").hidden=true;
- clearRecognition();$("retake").hidden=true;
- await startCamera();
-}
-function clearRecognition(){
- backgroundPoint=null;bounds=null;
- overlay.getContext("2d").clearRect(0,0,overlay.width,overlay.height);
- $("outlineResult").textContent="";
- $("clear").hidden=true;
- resetParts();
-}
-photo.addEventListener("click",e=>{
- const r=photo.getBoundingClientRect();
- const x=(e.clientX-r.left)/r.width*photo.naturalWidth;
- const y=(e.clientY-r.top)/r.height*photo.naturalHeight;
- if(bounds){
-  if(x<bounds.minX||x>bounds.maxX||y<bounds.minY||y>bounds.maxY){
-   backgroundPoint={x,y};
-   $("outlineResult").textContent="背景位置を変更したよ。もう一度認識してね。";
-   return;
-  }
-  registerPart(x,y);return;
- }
- backgroundPoint={x,y};
- const ctx=overlay.getContext("2d");
- ctx.clearRect(0,0,overlay.width,overlay.height);
- ctx.beginPath();ctx.arc(x,y,10,0,Math.PI*2);
- ctx.strokeStyle="#ffe05a";ctx.lineWidth=4;ctx.stroke();
- $("outlineResult").textContent="背景を指定したよ。「輪郭を認識する」を押してね。";
-});
-function recognize(){
- if(!backgroundPoint){$("outlineResult").textContent="背景をタップしてね。";return}
- const w=photo.naturalWidth,h=photo.naturalHeight;
- const scale=Math.min(1,480/w),sw=Math.round(w*scale),sh=Math.round(h*scale);
- const c=$("work");c.width=sw;c.height=sh;
- const ctx=c.getContext("2d",{willReadFrequently:true});
- ctx.drawImage(photo,0,0,sw,sh);
- const data=ctx.getImageData(0,0,sw,sh).data;
- const total=sw*sh,visited=new Uint8Array(total);
- const sx=Math.max(0,Math.min(sw-1,Math.floor(backgroundPoint.x*scale)));
- const sy=Math.max(0,Math.min(sh-1,Math.floor(backgroundPoint.y*scale)));
- const si=(sy*sw+sx)*4,br=data[si],bg=data[si+1],bb=data[si+2];
- const queue=new Int32Array(total);let head=0,tail=0;
- const start=sy*sw+sx;queue[tail++]=start;visited[start]=1;
- const similar=p=>{
-  const i=p*4,dr=data[i]-br,dg=data[i+1]-bg,db=data[i+2]-bb;
-  return dr*dr+dg*dg+db*db<=52*52*3;
- };
- while(head<tail){
-  const p=queue[head++],x=p%sw,y=(p/sw)|0;
-  const ns=[];
-  if(x>0)ns.push(p-1);if(x<sw-1)ns.push(p+1);
-  if(y>0)ns.push(p-sw);if(y<sh-1)ns.push(p+sw);
-  for(const n of ns)if(!visited[n]&&similar(n)){visited[n]=1;queue[tail++]=n}
- }
- const seen=new Uint8Array(total);let best=[],box=null;
- for(let i=0;i<total;i++){
-  if(visited[i]||seen[i])continue;
-  const stack=[i],component=[];seen[i]=1;
-  let minX=sw,minY=sh,maxX=0,maxY=0;
-  while(stack.length){
-   const p=stack.pop(),x=p%sw,y=(p/sw)|0;component.push(p);
-   minX=Math.min(minX,x);maxX=Math.max(maxX,x);
-   minY=Math.min(minY,y);maxY=Math.max(maxY,y);
-   const ns=[];
-   if(x>0)ns.push(p-1);if(x<sw-1)ns.push(p+1);
-   if(y>0)ns.push(p-sw);if(y<sh-1)ns.push(p+sw);
-   for(const n of ns)if(!visited[n]&&!seen[n]){seen[n]=1;stack.push(n)}
-  }
-  if(component.length>best.length){best=component;box={minX,minY,maxX,maxY}}
- }
- if(!box||best.length<total*.002){
-  $("outlineResult").textContent="見つからなかったよ。背景を別の場所でタップしてね。";return;
- }
- bounds={minX:box.minX/scale,minY:box.minY/scale,maxX:box.maxX/scale,maxY:box.maxY/scale};
- const mask=new Uint8Array(total);best.forEach(p=>mask[p]=1);
- const out=overlay.getContext("2d");
- out.clearRect(0,0,w,h);out.strokeStyle="#41ff82";out.lineWidth=2/scale;
- for(const p of best){
-  const x=p%sw,y=(p/sw)|0;
-  if(x===0||y===0||x===sw-1||y===sh-1||!mask[p-1]||!mask[p+1]||!mask[p-sw]||!mask[p+sw]){
-   out.beginPath();out.arc(x/scale,y/scale,1.5/scale,0,Math.PI*2);out.stroke();
-  }
- }
- out.strokeStyle="#ffe05a";out.lineWidth=Math.max(3,w/180);
- out.strokeRect(bounds.minX,bounds.minY,bounds.maxX-bounds.minX,bounds.maxY-bounds.minY);
- $("clear").hidden=false;
- $("outlineResult").textContent="輪郭を認識したよ！左目・右目・口を登録してね。";
-}
-function registerPart(x,y){
- const b=bounds;
- if(!b||x<b.minX||x>b.maxX||y<b.minY||y>b.maxY){
-  $("partStatus").textContent="モンスターの枠内をタップしてね。";return;
- }
- points[currentPart]={
-  x:(x-b.minX)/(b.maxX-b.minX),
-  y:(y-b.minY)/(b.maxY-b.minY)
- };
- drawMarkers();updatePartResult();
- const names={left:"左目",right:"右目",mouth:"口"};
- const next={left:"right",right:"mouth",mouth:"left"};
- $("partStatus").textContent=names[currentPart]+"を登録したよ！";
- currentPart=next[currentPart];
- document.querySelectorAll("[data-part]").forEach(btn=>btn.classList.toggle("active",btn.dataset.part===currentPart));
- $("partStatus").textContent+=" 次は"+names[currentPart]+"を登録しよう。";
- $("apply").disabled=!(points.left&&points.right&&points.mouth);
-}
-function drawMarkers(){
- if(!bounds)return;
- const ctx=overlay.getContext("2d"),b=bounds;
- ctx.clearRect(0,0,overlay.width,overlay.height);
- ctx.strokeStyle="#ffe05a";ctx.lineWidth=Math.max(3,overlay.width/180);
- ctx.strokeRect(b.minX,b.minY,b.maxX-b.minX,b.maxY-b.minY);
- const labels={left:"左目",right:"右目",mouth:"口"};
- const colors={left:"#ff6b9a",right:"#5cc8ff",mouth:"#ffe05a"};
- Object.keys(points).forEach(k=>{
-  const p=points[k];if(!p)return;
-  const x=b.minX+p.x*(b.maxX-b.minX),y=b.minY+p.y*(b.maxY-b.minY);
-  ctx.beginPath();ctx.arc(x,y,Math.max(9,overlay.width/65),0,Math.PI*2);
-  ctx.fillStyle=colors[k];ctx.fill();ctx.strokeStyle="white";ctx.lineWidth=3;ctx.stroke();
-  ctx.fillStyle="black";ctx.font=`bold ${Math.max(12,overlay.width/35)}px sans-serif`;
-  ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(labels[k],x,y);
- });
-}
+    const STORAGE_KEY = "nunomon_saved_monsters_v1";
 
-// モンスター保存・呼び出し
-function saveMonster(){
- if(!points.left||!points.right||!points.mouth)return;
- const name=$("monsterName").value.trim();
- if(!name){$("saveStatus").textContent="名前を入力してね。";return}
- const list=getSaved();
- const entry={
-  id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),
-  name,
-  points:JSON.parse(JSON.stringify(points)),
-  savedAt:new Date().toISOString()
- };
- list.unshift(entry);
- try{
-  storeSaved(list);
-  currentName=name;
-  $("displayName").textContent=name;
-  $("saveStatus").textContent="🎉「"+name+"」を保存したよ！";
-  renderSaved();
- }catch(e){
-  $("saveStatus").textContent="保存できなかったよ。ブラウザの保存容量を確認してね。";
- }
-}
-function loadMonster(id){
- const entry=getSaved().find(item=>item.id===id);
- if(!entry)return;
- points=JSON.parse(JSON.stringify(entry.points));
- currentName=entry.name;
- $("monsterName").value=entry.name;
- $("displayName").textContent=entry.name;
- drawDigital();drawMarkers();updatePartResult();
- $("apply").disabled=false;
- $("saveStatus").textContent="「"+entry.name+"」を呼び出したよ！";
- window.scrollTo({top:0,behavior:"smooth"});
-}
-function deleteMonster(id){
- const entry=getSaved().find(item=>item.id===id);
- if(!entry)return;
- if(!confirm("「"+entry.name+"」を削除する？"))return;
- storeSaved(getSaved().filter(item=>item.id!==id));
- renderSaved();
- $("listStatus").textContent="削除したよ。";
-}
-function renderSaved(){
- const list=getSaved(),container=$("savedList");
- container.innerHTML="";
- if(!list.length){
-  container.textContent="まだ保存されていないよ。";
-  return;
- }
- list.forEach(item=>{
-  const row=document.createElement("div");row.className="saved-item";
-  const info=document.createElement("div");info.className="saved-name";
-  const name=document.createElement("strong");name.textContent=item.name;
-  const date=document.createElement("div");date.className="saved-date";
-  date.textContent=new Date(item.savedAt).toLocaleString("ja-JP");
-  info.append(name,date);
-  const load=document.createElement("button");load.textContent="呼出";
-  load.addEventListener("click",()=>loadMonster(item.id));
-  const del=document.createElement("button");del.textContent="削除";del.className="secondary";
-  del.addEventListener("click",()=>deleteMonster(item.id));
-  row.append(info,load,del);container.append(row);
- });
-}
-document.querySelectorAll("[data-part]").forEach(btn=>{
- btn.addEventListener("click",()=>{
-  currentPart=btn.dataset.part;
-  document.querySelectorAll("[data-part]").forEach(b=>b.classList.toggle("active",b===btn));
-  const names={left:"左目",right:"右目",mouth:"口"};
-  $("partStatus").textContent=names[currentPart]+"を選択中。写真の該当部分をタップしてね。";
- });
-});
-$("recognize").addEventListener("click",recognize);
-$("clear").addEventListener("click",()=>{
- clearRecognition();
- $("photoHelp").textContent="背景をタップして輪郭を認識してね。";
-});
-$("start").addEventListener("click",startCamera);
-$("shoot").addEventListener("click",shoot);
-$("stop").addEventListener("click",stopCamera);
-$("retake").addEventListener("click",retake);
-$("apply").addEventListener("click",applyParts);
-$("resetParts").addEventListener("click",resetParts);
-$("resetDigital").addEventListener("click",resetDigital);
-$("toggleMotion").addEventListener("click",()=>{
- motion=!motion;
- $("monster").classList.toggle("still",!motion);
- $("toggleMotion").textContent=motion?"動きを止める":"動かす";
-});
-$("save").addEventListener("click",saveMonster);
-window.addEventListener("pagehide",stopCamera);
-updatePartResult();
-renderSaved();
-</script>
+    function getSaved() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]") }
+      catch (e) { return [] }
+    }
+    function storeSaved(list) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    }
+    function updatePartResult() {
+      const names = { left: "左目", right: "右目", mouth: "口" };
+      $("partResult").textContent = Object.keys(points).map(k =>
+        names[k] + "：" + (points[k] ? (partImages[k] ? "画像登録済み" : "位置登録済み") : "未登録")
+      ).join(" ／ ");
+      $("save").disabled = !(points.left && points.right && points.mouth &&
+        partImages.left && partImages.right && partImages.mouth);
+    }
+
+    function drawDigital() {
+      const mapping = [
+        ["digitalLeft", "left", points.left, 25.5, 8],
+        ["digitalRight", "right", points.right, 25.5, 8],
+        ["digitalMouth", "mouth", points.mouth, 36, 9]
+      ];
+
+      mapping.forEach(([id, key, p, width, heightOffset]) => {
+        const el = $(id);
+        el.src = partImages[key] || ORIGINAL_IMAGES[key];
+
+        if (!p) {
+          el.style.left = "";
+          el.style.top = "";
+          el.style.transform = "";
+          return;
+        }
+
+        // CSSアニメーションのtransformと競合しないよう、左上位置を計算する
+        el.style.left = `calc(${p.x * 100}% - ${width / 2}%)`;
+        el.style.top = `calc(${p.y * 100}% - ${heightOffset}%)`;
+        el.style.width = width + "%";
+        el.style.transform = "";
+      });
+    }
+
+    function makePartImage(part, point) {
+      if (!photo.complete || !photo.naturalWidth || !backgroundPoint || !bounds) return null;
+
+      const bw = bounds.maxX - bounds.minX;
+      const bh = bounds.maxY - bounds.minY;
+
+      // タップ位置を中心に、パーツごとの範囲を切り抜く
+      const ratios = {
+        left: { w: 0.23, h: 0.22 },
+        right: { w: 0.23, h: 0.22 },
+        mouth: { w: 0.40, h: 0.30 }
+      };
+      const size = ratios[part];
+      const cropW = bw * size.w;
+      const cropH = bh * size.h;
+      const centerX = bounds.minX + point.x * bw;
+      const centerY = bounds.minY + point.y * bh;
+
+      let sx = centerX - cropW / 2;
+      let sy = centerY - cropH / 2;
+      sx = Math.max(0, Math.min(photo.naturalWidth - cropW, sx));
+      sy = Math.max(0, Math.min(photo.naturalHeight - cropH, sy));
+
+      // 保存容量を抑えながらフェルトの質感を残す
+      const maxSide = 360;
+      const scale = Math.min(1, maxSide / Math.max(cropW, cropH));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(cropW * scale));
+      canvas.height = Math.max(1, Math.round(cropH * scale));
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      ctx.drawImage(photo, sx, sy, cropW, cropH, 0, 0, canvas.width, canvas.height);
+
+      // 背景色に近い部分を透明化。フェルト本体の色や質感は残す
+      const bgX = Math.max(0, Math.min(photo.naturalWidth - 1, Math.round(backgroundPoint.x)));
+      const bgY = Math.max(0, Math.min(photo.naturalHeight - 1, Math.round(backgroundPoint.y)));
+      const bgCanvas = document.createElement("canvas");
+      bgCanvas.width = bgCanvas.height = 1;
+      const bgCtx = bgCanvas.getContext("2d", { willReadFrequently: true });
+      bgCtx.drawImage(photo, bgX, bgY, 1, 1, 0, 0, 1, 1);
+      const bg = bgCtx.getImageData(0, 0, 1, 1).data;
+      const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const pixels = image.data;
+
+      for (let i = 0; i < pixels.length; i += 4) {
+        const dr = pixels[i] - bg[0];
+        const dg = pixels[i + 1] - bg[1];
+        const db = pixels[i + 2] - bg[2];
+        const distance = Math.sqrt(dr * dr + dg * dg + db * db);
+
+        if (distance < 42) {
+          pixels[i + 3] = 0;
+        } else if (distance < 82) {
+          pixels[i + 3] = Math.round((distance - 42) / 40 * pixels[i + 3]);
+        }
+      }
+
+      ctx.putImageData(image, 0, 0);
+      return canvas.toDataURL("image/png");
+    }
+    function resetParts() {
+      points = { left: null, right: null, mouth: null };
+      partImages = { left: null, right: null, mouth: null };
+      drawDigital(); drawMarkers(); updatePartResult();
+      $("apply").disabled = true;
+      $("partStatus").textContent = "パーツ位置をリセットしたよ。";
+    }
+    function resetDigital() {
+      resetParts(); currentName = ""; $("displayName").textContent = "新しいモンスター";
+      $("monsterName").value = "";
+    }
+    function applyParts() {
+      if (!points.left || !points.right || !points.mouth) return;
+      if (!partImages.left || !partImages.right || !partImages.mouth) {
+        $("partStatus").textContent = "写真からパーツ画像を作れなかったよ。もう一度3か所を登録してね。";
+        return;
+      }
+      drawDigital();
+      $("displayName").textContent = currentName || "新しいモンスター";
+      $("partStatus").textContent = "写真から切り抜いた3つのパーツを反映したよ！";
+      $("saveStatus").textContent = "保存できるよ。名前を付けて保存してね。";
+    }
+    function stopTracks() {
+      if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null }
+    }
+    async function startCamera() {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        $("cameraStatus").textContent = "HTTPSのページからカメラを使ってね。"; return;
+      }
+      $("start").disabled = true;
+      $("cameraStatus").textContent = "カメラを起動中……";
+      try {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: "environment" } } });
+        } catch (e) {
+          stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: true });
+        }
+        video.srcObject = stream; video.hidden = false; $("placeholder").hidden = true;
+        await new Promise((resolve, reject) => {
+          if (video.readyState >= 1 && video.videoWidth) { resolve(); return }
+          video.onloadedmetadata = resolve;
+          setTimeout(() => reject(new Error("timeout")), 10000);
+        });
+        await video.play();
+        $("shoot").disabled = false; $("stop").disabled = false;
+        $("cameraStatus").textContent = "カメラ起動成功！";
+      } catch (e) {
+        stopTracks(); video.srcObject = null; video.hidden = true;
+        $("placeholder").hidden = false; $("start").disabled = false;
+        $("cameraStatus").textContent = "カメラを起動できなかったよ。許可を確認してね。";
+      }
+    }
+    function stopCamera() {
+      stopTracks(); video.pause(); video.srcObject = null; video.hidden = true;
+      $("placeholder").hidden = false; $("start").disabled = false;
+      $("shoot").disabled = true; $("stop").disabled = true;
+      $("cameraStatus").textContent = "カメラを終了したよ。";
+    }
+    function shoot() {
+      if (!stream || !video.videoWidth) return;
+      const c = $("work"), ctx = c.getContext("2d");
+      c.width = video.videoWidth; c.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, c.width, c.height);
+      photo.onload = () => {
+        stopTracks(); video.pause(); video.srcObject = null; video.hidden = true;
+        $("photoArea").hidden = false; $("photoHelp").hidden = false;
+        overlay.width = photo.naturalWidth; overlay.height = photo.naturalHeight;
+        $("start").disabled = false; $("shoot").disabled = true;
+        $("stop").disabled = true; $("retake").hidden = false;
+        $("recognize").disabled = false;
+        $("cameraStatus").textContent = "撮影できたよ！背景をタップしてね。";
+        clearRecognition();
+      };
+      photo.src = c.toDataURL("image/jpeg", .92);
+    }
+    async function retake() {
+      $("photoArea").hidden = true; $("photoHelp").hidden = true;
+      clearRecognition(); $("retake").hidden = true;
+      await startCamera();
+    }
+    function clearRecognition() {
+      backgroundPoint = null; bounds = null;
+      overlay.getContext("2d").clearRect(0, 0, overlay.width, overlay.height);
+      $("outlineResult").textContent = "";
+      $("clear").hidden = true;
+      resetParts();
+    }
+    photo.addEventListener("click", e => {
+      const r = photo.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width * photo.naturalWidth;
+      const y = (e.clientY - r.top) / r.height * photo.naturalHeight;
+      if (bounds) {
+        if (x < bounds.minX || x > bounds.maxX || y < bounds.minY || y > bounds.maxY) {
+          backgroundPoint = { x, y };
+          $("outlineResult").textContent = "背景位置を変更したよ。もう一度認識してね。";
+          return;
+        }
+        registerPart(x, y); return;
+      }
+      backgroundPoint = { x, y };
+      const ctx = overlay.getContext("2d");
+      ctx.clearRect(0, 0, overlay.width, overlay.height);
+      ctx.beginPath(); ctx.arc(x, y, 10, 0, Math.PI * 2);
+      ctx.strokeStyle = "#ffe05a"; ctx.lineWidth = 4; ctx.stroke();
+      $("outlineResult").textContent = "背景を指定したよ。「輪郭を認識する」を押してね。";
+    });
+    function recognize() {
+      if (!backgroundPoint) { $("outlineResult").textContent = "背景をタップしてね。"; return }
+      const w = photo.naturalWidth, h = photo.naturalHeight;
+      const scale = Math.min(1, 480 / w), sw = Math.round(w * scale), sh = Math.round(h * scale);
+      const c = $("work"); c.width = sw; c.height = sh;
+      const ctx = c.getContext("2d", { willReadFrequently: true });
+      ctx.drawImage(photo, 0, 0, sw, sh);
+      const data = ctx.getImageData(0, 0, sw, sh).data;
+      const total = sw * sh, visited = new Uint8Array(total);
+      const sx = Math.max(0, Math.min(sw - 1, Math.floor(backgroundPoint.x * scale)));
+      const sy = Math.max(0, Math.min(sh - 1, Math.floor(backgroundPoint.y * scale)));
+      const si = (sy * sw + sx) * 4, br = data[si], bg = data[si + 1], bb = data[si + 2];
+      const queue = new Int32Array(total); let head = 0, tail = 0;
+      const start = sy * sw + sx; queue[tail++] = start; visited[start] = 1;
+      const similar = p => {
+        const i = p * 4, dr = data[i] - br, dg = data[i + 1] - bg, db = data[i + 2] - bb;
+        return dr * dr + dg * dg + db * db <= 52 * 52 * 3;
+      };
+      while (head < tail) {
+        const p = queue[head++], x = p % sw, y = (p / sw) | 0;
+        const ns = [];
+        if (x > 0) ns.push(p - 1); if (x < sw - 1) ns.push(p + 1);
+        if (y > 0) ns.push(p - sw); if (y < sh - 1) ns.push(p + sw);
+        for (const n of ns) if (!visited[n] && similar(n)) { visited[n] = 1; queue[tail++] = n }
+      }
+      const seen = new Uint8Array(total); let best = [], box = null;
+      for (let i = 0; i < total; i++) {
+        if (visited[i] || seen[i]) continue;
+        const stack = [i], component = []; seen[i] = 1;
+        let minX = sw, minY = sh, maxX = 0, maxY = 0;
+        while (stack.length) {
+          const p = stack.pop(), x = p % sw, y = (p / sw) | 0; component.push(p);
+          minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+          minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+          const ns = [];
+          if (x > 0) ns.push(p - 1); if (x < sw - 1) ns.push(p + 1);
+          if (y > 0) ns.push(p - sw); if (y < sh - 1) ns.push(p + sw);
+          for (const n of ns) if (!visited[n] && !seen[n]) { seen[n] = 1; stack.push(n) }
+        }
+        if (component.length > best.length) { best = component; box = { minX, minY, maxX, maxY } }
+      }
+      if (!box || best.length < total * .002) {
+        $("outlineResult").textContent = "見つからなかったよ。背景を別の場所でタップしてね。"; return;
+      }
+      bounds = { minX: box.minX / scale, minY: box.minY / scale, maxX: box.maxX / scale, maxY: box.maxY / scale };
+      const mask = new Uint8Array(total); best.forEach(p => mask[p] = 1);
+      const out = overlay.getContext("2d");
+      out.clearRect(0, 0, w, h); out.strokeStyle = "#41ff82"; out.lineWidth = 2 / scale;
+      for (const p of best) {
+        const x = p % sw, y = (p / sw) | 0;
+        if (x === 0 || y === 0 || x === sw - 1 || y === sh - 1 || !mask[p - 1] || !mask[p + 1] || !mask[p - sw] || !mask[p + sw]) {
+          out.beginPath(); out.arc(x / scale, y / scale, 1.5 / scale, 0, Math.PI * 2); out.stroke();
+        }
+      }
+      out.strokeStyle = "#ffe05a"; out.lineWidth = Math.max(3, w / 180);
+      out.strokeRect(bounds.minX, bounds.minY, bounds.maxX - bounds.minX, bounds.maxY - bounds.minY);
+      $("clear").hidden = false;
+      $("outlineResult").textContent = "輪郭を認識したよ！左目・右目・口を登録してね。";
+    }
+    function registerPart(x, y) {
+      const b = bounds;
+      if (!b || x < b.minX || x > b.maxX || y < b.minY || y > b.maxY) {
+        $("partStatus").textContent = "モンスターの枠内をタップしてね。"; return;
+      }
+      points[currentPart] = {
+        x: (x - b.minX) / (b.maxX - b.minX),
+        y: (y - b.minY) / (b.maxY - b.minY)
+      };
+      partImages[currentPart] = makePartImage(currentPart, points[currentPart]);
+      drawMarkers(); updatePartResult();
+      const names = { left: "左目", right: "右目", mouth: "口" };
+      const next = { left: "right", right: "mouth", mouth: "left" };
+      $("partStatus").textContent = names[currentPart] + "を登録したよ！";
+      currentPart = next[currentPart];
+      document.querySelectorAll("[data-part]").forEach(btn => btn.classList.toggle("active", btn.dataset.part === currentPart));
+      $("partStatus").textContent += " 次は" + names[currentPart] + "を登録しよう。";
+      $("apply").disabled = !(points.left && points.right && points.mouth);
+    }
+    function drawMarkers() {
+      if (!bounds) return;
+      const ctx = overlay.getContext("2d"), b = bounds;
+      ctx.clearRect(0, 0, overlay.width, overlay.height);
+      ctx.strokeStyle = "#ffe05a"; ctx.lineWidth = Math.max(3, overlay.width / 180);
+      ctx.strokeRect(b.minX, b.minY, b.maxX - b.minX, b.maxY - b.minY);
+      const labels = { left: "左目", right: "右目", mouth: "口" };
+      const colors = { left: "#ff6b9a", right: "#5cc8ff", mouth: "#ffe05a" };
+      Object.keys(points).forEach(k => {
+        const p = points[k]; if (!p) return;
+        const x = b.minX + p.x * (b.maxX - b.minX), y = b.minY + p.y * (b.maxY - b.minY);
+        ctx.beginPath(); ctx.arc(x, y, Math.max(9, overlay.width / 65), 0, Math.PI * 2);
+        ctx.fillStyle = colors[k]; ctx.fill(); ctx.strokeStyle = "white"; ctx.lineWidth = 3; ctx.stroke();
+        ctx.fillStyle = "black"; ctx.font = `bold ${Math.max(12, overlay.width / 35)}px sans-serif`;
+        ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(labels[k], x, y);
+      });
+    }
+
+    // モンスター保存・呼び出し
+    function saveMonster() {
+      if (!points.left || !points.right || !points.mouth) return;
+      const name = $("monsterName").value.trim();
+      if (!name) { $("saveStatus").textContent = "名前を入力してね。"; return }
+      const list = getSaved();
+      const entry = {
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+        name,
+        points: JSON.parse(JSON.stringify(points)),
+        images: JSON.parse(JSON.stringify(partImages)),
+        savedAt: new Date().toISOString()
+      };
+      list.unshift(entry);
+      try {
+        storeSaved(list);
+        currentName = name;
+        $("displayName").textContent = name;
+        $("saveStatus").textContent = "🎉「" + name + "」を保存したよ！";
+        renderSaved();
+      } catch (e) {
+        $("saveStatus").textContent = "保存できなかったよ。ブラウザの保存容量を確認してね。";
+      }
+    }
+    function loadMonster(id) {
+      const entry = getSaved().find(item => item.id === id);
+      if (!entry) return;
+      points = JSON.parse(JSON.stringify(entry.points));
+      partImages = entry.images
+        ? JSON.parse(JSON.stringify(entry.images))
+        : { left: null, right: null, mouth: null };
+      currentName = entry.name;
+      $("monsterName").value = entry.name;
+      $("displayName").textContent = entry.name;
+      drawDigital(); drawMarkers(); updatePartResult();
+      $("apply").disabled = false;
+      $("saveStatus").textContent = entry.images
+        ? "「" + entry.name + "」のフェルト画像も呼び出したよ！"
+        : "「" + entry.name + "」を呼び出したよ。旧データなので画像は元のままだよ。";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    function deleteMonster(id) {
+      const entry = getSaved().find(item => item.id === id);
+      if (!entry) return;
+      if (!confirm("「" + entry.name + "」を削除する？")) return;
+      storeSaved(getSaved().filter(item => item.id !== id));
+      renderSaved();
+      $("listStatus").textContent = "削除したよ。";
+    }
+    function renderSaved() {
+      const list = getSaved(), container = $("savedList");
+      container.innerHTML = "";
+      if (!list.length) {
+        container.textContent = "まだ保存されていないよ。";
+        return;
+      }
+      list.forEach(item => {
+        const row = document.createElement("div"); row.className = "saved-item";
+        const info = document.createElement("div"); info.className = "saved-name";
+        const name = document.createElement("strong"); name.textContent = item.name;
+        const date = document.createElement("div"); date.className = "saved-date";
+        date.textContent = new Date(item.savedAt).toLocaleString("ja-JP");
+        info.append(name, date);
+        const load = document.createElement("button"); load.textContent = "呼出";
+        load.addEventListener("click", () => loadMonster(item.id));
+        const del = document.createElement("button"); del.textContent = "削除"; del.className = "secondary";
+        del.addEventListener("click", () => deleteMonster(item.id));
+        row.append(info, load, del); container.append(row);
+      });
+    }
+    document.querySelectorAll("[data-part]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        currentPart = btn.dataset.part;
+        document.querySelectorAll("[data-part]").forEach(b => b.classList.toggle("active", b === btn));
+        const names = { left: "左目", right: "右目", mouth: "口" };
+        $("partStatus").textContent = names[currentPart] + "を選択中。写真の該当部分をタップしてね。";
+      });
+    });
+    $("recognize").addEventListener("click", recognize);
+    $("clear").addEventListener("click", () => {
+      clearRecognition();
+      $("photoHelp").textContent = "背景をタップして輪郭を認識してね。";
+    });
+    $("start").addEventListener("click", startCamera);
+    $("shoot").addEventListener("click", shoot);
+    $("stop").addEventListener("click", stopCamera);
+    $("retake").addEventListener("click", retake);
+    $("apply").addEventListener("click", applyParts);
+    $("resetParts").addEventListener("click", resetParts);
+    $("resetDigital").addEventListener("click", resetDigital);
+    $("toggleMotion").addEventListener("click", () => {
+      motion = !motion;
+      $("monster").classList.toggle("still", !motion);
+      $("toggleMotion").textContent = motion ? "動きを止める" : "動かす";
+    });
+    $("save").addEventListener("click", saveMonster);
+    window.addEventListener("pagehide", stopCamera);
+    updatePartResult();
+    renderSaved();
+  </script>
 </body>
+
 </html>
