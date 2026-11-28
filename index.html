@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>ぬのモン STEP 9</title>
+  <title>ぬのモン STEP 15</title>
   <style>
     * {
       box-sizing: border-box
@@ -74,68 +74,33 @@
       pointer-events: none
     }
 
-    .feature-mark {
+    .feature-photo {
       position: absolute;
+      display: none;
+      object-fit: fill;
       pointer-events: none;
-      opacity: 0;
       transform: translate(-50%, -50%);
-      border: 0;
-      box-shadow: none;
-      background: transparent;
-    }
-
-    .feature-mark.registered { opacity: 1; }
-
-    .eye-mark {
-      width: 18%;
-      height: 14%;
-      border-radius: 50%;
-    }
-
-    /* まばたき：フェルト色のまぶたが目を覆い、閉じた線を作る */
-    .eye-mark::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      border-radius: 50%;
-      background: rgba(177, 211, 209, .97);
-      border-bottom: 2px solid rgba(83, 57, 53, .9);
-      transform: scaleY(0);
       transform-origin: center;
-      animation: eyelidBlink 3.4s ease-in-out infinite;
     }
 
-    .right-mark::after { animation-delay: .12s; }
+    .feature-photo.registered { display: block; }
 
-    .mouth-mark {
-      width: 24%;
-      height: 16%;
-      border-radius: 45%;
+    .eye-photo {
+      animation: photoBlink 3.5s ease-in-out infinite;
     }
 
-    /* 口：暗い口内が広がって閉じる */
-    .mouth-mark::after {
-      content: "";
-      position: absolute;
-      left: 18%;
-      right: 18%;
-      top: 12%;
-      bottom: 12%;
-      border-radius: 45% 45% 50% 50%;
-      background: rgba(70, 20, 28, .94);
-      transform: scaleY(.12);
-      transform-origin: center;
-      animation: mouthOpenClose 2.6s ease-in-out infinite;
+    .mouth-photo {
+      animation: photoMouth 2.6s ease-in-out infinite;
     }
 
-    @keyframes eyelidBlink {
-      0%, 43%, 49%, 100% { transform: scaleY(0); }
-      46% { transform: scaleY(1); }
+    @keyframes photoBlink {
+      0%, 43%, 49%, 100% { transform: translate(-50%, -50%) scaleY(1); }
+      46% { transform: translate(-50%, -50%) scaleY(.08); }
     }
 
-    @keyframes mouthOpenClose {
-      0%, 25%, 100% { transform: scaleY(.12); }
-      55%, 72% { transform: scaleY(1); }
+    @keyframes photoMouth {
+      0%, 25%, 100% { transform: translate(-50%, -50%) scaleY(.72); }
+      55%, 72% { transform: translate(-50%, -50%) scaleY(1.08); }
     }
 
     @keyframes float {
@@ -165,7 +130,7 @@
     }
 
     .monster.still,
-    .monster.still .feature-mark {
+    .monster.still .feature-photo {
       animation: none !important
     }
 
@@ -302,16 +267,16 @@
 <body>
   <main class="app">
     <h1>🧵 ぬのモン</h1>
-    <p class="sub">STEP 14：目・口の位置補正</p>
+    <p class="sub">STEP 15：フェルトの目・口そのものを動かす</p>
 
     <section class="panel">
       <h2>デジタルモンスター</h2>
       <div class="stage">
         <div class="monster" id="monster">
           <img class="photo-monster" id="digitalPhoto" src="body.png" alt="">
-          <div class="feature-mark eye-mark left-mark" id="digitalLeft"></div>
-          <div class="feature-mark eye-mark right-mark" id="digitalRight"></div>
-          <div class="feature-mark mouth-mark" id="digitalMouth"></div>
+          <img class="feature-photo eye-photo" id="digitalLeft" alt="">
+          <img class="feature-photo eye-photo" id="digitalRight" alt="">
+          <img class="feature-photo mouth-photo" id="digitalMouth" alt="">
         </div>
       </div>
       <p class="help" id="displayName">新しいモンスター</p>
@@ -350,7 +315,7 @@
 
     <section class="panel">
       <h2>👀 顔パーツを登録</h2>
-      <p class="help">パーツを選んで、写真上の該当する場所をタップしてね。写真は切り抜かずそのまま表示。目と口の位置を登録して、その場所に動くマーカーを重ねるよ。</p>
+      <p class="help">パーツを選んで、写真上の該当する場所をタップしてね。写真から目と口の画像部分を取り出し、元の位置を背景になじませてから、同じフェルトパーツ自体を動かすよ。</p>
       <div class="part-buttons">
         <button data-part="left" class="active">左目</button>
         <button data-part="right">右目</button>
@@ -366,7 +331,7 @@
 
     <section class="panel">
       <h2>💾 モンスターを保存</h2>
-      <p class="help">写真から切り抜いた目と口を反映して、名前を付けて保存しよう！</p>
+      <p class="help">写真から取り出した目と口の動きも一緒に保存しよう！</p>
       <input id="monsterName" maxlength="24" placeholder="モンスターの名前">
       <div class="buttons">
         <button id="save" disabled>このモンスターを保存</button>
@@ -389,7 +354,8 @@
     let currentPart = "left";
     let points = { left: null, right: null, mouth: null };
     let digitalPoints = { left: null, right: null, mouth: null };
-    let partImages = { left: null, right: null, mouth: null };
+    let featureImages = { left: null, right: null, mouth: null };
+    let featureSizes = { left: null, right: null, mouth: null };
     let bodyImage = null;
     let motion = true;
     let currentName = "";
@@ -412,14 +378,16 @@
     function updatePartResult() {
       const names = { left: "左目", right: "右目", mouth: "口" };
       $("partResult").textContent = Object.keys(points).map(k =>
-        names[k] + "：" + (points[k] ? (partImages[k] ? "画像登録済み" : "位置登録済み") : "未登録")
+        names[k] + "：" + (points[k] ? (featureImages[k] ? "フェルト画像登録済み" : "位置登録済み") : "未登録")
       ).join(" ／ ");
-      $("save").disabled = !(points.left && points.right && points.mouth);
+      $("save").disabled = !(points.left && points.right && points.mouth &&
+        featureImages.left && featureImages.right && featureImages.mouth);
     }
 
     function drawDigital() {
       const img = $("digitalPhoto");
       img.src = bodyImage || "body.png";
+
       if (bodyImage) {
         const ratioImage = new Image();
         ratioImage.onload = () => {
@@ -431,22 +399,26 @@
       }
 
       const mapping = [
-        ["digitalLeft", digitalPoints.left],
-        ["digitalRight", digitalPoints.right],
-        ["digitalMouth", digitalPoints.mouth]
+        ["digitalLeft", "left"],
+        ["digitalRight", "right"],
+        ["digitalMouth", "mouth"]
       ];
 
-      mapping.forEach(([id, p]) => {
+      mapping.forEach(([id, key]) => {
         const el = $(id);
-        if (!p) {
+        const p = digitalPoints[key];
+        const size = featureSizes[key];
+        el.src = featureImages[key] || "";
+        if (!p || !size || !featureImages[key]) {
           el.classList.remove("registered");
-          el.style.left = "";
-          el.style.top = "";
           return;
         }
+
         el.classList.add("registered");
         el.style.left = (p.x * 100) + "%";
         el.style.top = (p.y * 100) + "%";
+        el.style.width = (size.w * 100) + "%";
+        el.style.height = (size.h * 100) + "%";
       });
     }
 
@@ -514,10 +486,87 @@
       return canvas.toDataURL("image/jpeg", 0.92);
     }
 
+    function buildLivingPhoto() {
+      const crop = getPhotoCrop();
+      if (!crop || !points.left || !points.right || !points.mouth) return null;
+
+      const bw = bounds.maxX - bounds.minX;
+      const bh = bounds.maxY - bounds.minY;
+      const specs = {
+        left: { w: bw * 0.205, h: bh * 0.17, sampleX: 0, sampleY: -bh * 0.20 },
+        right: { w: bw * 0.205, h: bh * 0.17, sampleX: 0, sampleY: -bh * 0.20 },
+        mouth: { w: bw * 0.31, h: bh * 0.235, sampleX: bw * 0.34, sampleY: 0 }
+      };
+
+      const base = document.createElement("canvas");
+      const maxSide = 700;
+      const scale = Math.min(1, maxSide / Math.max(crop.width, crop.height));
+      base.width = Math.max(1, Math.round(crop.width * scale));
+      base.height = Math.max(1, Math.round(crop.height * scale));
+      const ctx = base.getContext("2d");
+      ctx.drawImage(photo, crop.sx, crop.sy, crop.width, crop.height, 0, 0, base.width, base.height);
+
+      const newFeatureImages = {};
+      const newFeatureSizes = {};
+      const newDigitalPoints = {};
+
+      Object.keys(specs).forEach(key => {
+        const p = points[key];
+        const spec = specs[key];
+        const cx = bounds.minX + p.x * bw;
+        const cy = bounds.minY + p.y * bh;
+        const sw = spec.w;
+        const sh = spec.h;
+
+        // 本物のフェルトパーツを、楕円形の柔らかい縁で写真から取り出す
+        const patch = document.createElement("canvas");
+        patch.width = 260;
+        patch.height = Math.max(1, Math.round(260 * sh / sw));
+        const pctx = patch.getContext("2d");
+        pctx.save();
+        pctx.beginPath();
+        pctx.ellipse(patch.width / 2, patch.height / 2, patch.width * .49, patch.height * .49, 0, 0, Math.PI * 2);
+        pctx.clip();
+        pctx.drawImage(photo, cx - sw / 2, cy - sh / 2, sw, sh, 0, 0, patch.width, patch.height);
+        pctx.restore();
+        newFeatureImages[key] = patch.toDataURL("image/png");
+
+        // 元写真の目・口部分を、近くのフェルト地で埋めて二重表示を防ぐ
+        let sourceX = cx + spec.sampleX;
+        let sourceY = cy + spec.sampleY;
+        sourceX = Math.max(0, Math.min(photo.naturalWidth - sw, sourceX - sw / 2));
+        sourceY = Math.max(0, Math.min(photo.naturalHeight - sh, sourceY - sh / 2));
+        ctx.drawImage(
+          photo,
+          sourceX, sourceY, sw, sh,
+          (cx - sw / 2 - crop.sx) * scale,
+          (cy - sh / 2 - crop.sy) * scale,
+          sw * scale, sh * scale
+        );
+
+        newDigitalPoints[key] = {
+          x: (cx - crop.sx) / crop.width,
+          y: (cy - crop.sy) / crop.height
+        };
+        newFeatureSizes[key] = {
+          w: sw / crop.width,
+          h: sh / crop.height
+        };
+      });
+
+      return {
+        body: base.toDataURL("image/jpeg", .93),
+        images: newFeatureImages,
+        sizes: newFeatureSizes,
+        positions: newDigitalPoints
+      };
+    }
+
     function resetParts() {
       points = { left: null, right: null, mouth: null };
       digitalPoints = { left: null, right: null, mouth: null };
-      partImages = { left: null, right: null, mouth: null };
+      featureImages = { left: null, right: null, mouth: null };
+      featureSizes = { left: null, right: null, mouth: null };
       bodyImage = null;
       drawDigital(); drawMarkers(); updatePartResult();
       $("apply").disabled = true;
@@ -529,11 +578,18 @@
     }
     function applyParts() {
       if (!points.left || !points.right || !points.mouth) return;
-      updateDigitalPoints();
-      bodyImage = makePhotoMonster();
+      const living = buildLivingPhoto();
+      if (!living) {
+        $("partStatus").textContent = "写真パーツを作れなかったよ。もう一度登録してね。";
+        return;
+      }
+      bodyImage = living.body;
+      featureImages = living.images;
+      featureSizes = living.sizes;
+      digitalPoints = living.positions;
       drawDigital();
       $("displayName").textContent = currentName || "新しいモンスター";
-      $("partStatus").textContent = "写真をそのまま表示して、目と口の位置を認識したよ！";
+      $("partStatus").textContent = "写真から取り出したフェルトの目と口を動かせるようにしたよ！";
       $("saveStatus").textContent = "保存できるよ。名前を付けて保存してね。";
     }
     function stopTracks() {
@@ -707,10 +763,15 @@
         y: (y - b.minY) / (b.maxY - b.minY)
       };
       if (points.left && points.right && points.mouth) {
-        updateDigitalPoints();
-        bodyImage = makePhotoMonster();
-        drawDigital();
-        $("outlineResult").textContent = "写真は切り抜かず、そのままデジタル側に反映したよ！";
+        const living = buildLivingPhoto();
+        if (living) {
+          bodyImage = living.body;
+          featureImages = living.images;
+          featureSizes = living.sizes;
+          digitalPoints = living.positions;
+          drawDigital();
+        }
+        $("outlineResult").textContent = "フェルトの目と口そのものを取り出して、動かせるようにしたよ！";
       }
 
       drawMarkers(); updatePartResult();
@@ -751,6 +812,8 @@
         name,
         points: JSON.parse(JSON.stringify(points)),
         digitalPoints: JSON.parse(JSON.stringify(digitalPoints)),
+        featureImages: JSON.parse(JSON.stringify(featureImages)),
+        featureSizes: JSON.parse(JSON.stringify(featureSizes)),
         bodyImage,
         savedAt: new Date().toISOString()
       };
@@ -772,7 +835,12 @@
       digitalPoints = entry.digitalPoints
         ? JSON.parse(JSON.stringify(entry.digitalPoints))
         : JSON.parse(JSON.stringify(entry.points));
-      partImages = { left: null, right: null, mouth: null };
+      featureImages = entry.featureImages
+        ? JSON.parse(JSON.stringify(entry.featureImages))
+        : { left: null, right: null, mouth: null };
+      featureSizes = entry.featureSizes
+        ? JSON.parse(JSON.stringify(entry.featureSizes))
+        : { left: null, right: null, mouth: null };
       bodyImage = entry.bodyImage || null;
       currentName = entry.name;
       $("monsterName").value = entry.name;
