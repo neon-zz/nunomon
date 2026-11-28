@@ -64,38 +64,52 @@
       animation: float 2.6s ease-in-out infinite
     }
 
-    .monster img {
+    .photo-monster {
       position: absolute;
-      height: auto;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
+      border-radius: 12px;
       pointer-events: none
     }
 
-    .body {
-      inset: 0;
-      width: 100%
+    .feature-mark {
+      position: absolute;
+      pointer-events: none;
+      opacity: 0;
+      transform: translate(-50%, -50%);
+      border: 2px solid rgba(255,255,255,.72);
+      box-shadow: 0 0 0 3px rgba(70,190,255,.22);
+      transition: opacity .2s ease
     }
 
-    .eye {
-      width: 25.5%;
-      top: 27%;
-      animation: blink 4.8s infinite;
-      object-fit: cover
+    .feature-mark.registered { opacity: 1; }
+
+    .eye-mark {
+      width: 17%;
+      height: 14%;
+      border-radius: 50%;
+      animation: eyePulse 2.8s ease-in-out infinite
     }
 
-    .eye.left {
-      left: 24%
+    .mouth-mark {
+      width: 25%;
+      height: 16%;
+      border-radius: 45%;
+      animation: mouthPulse 2.2s ease-in-out infinite
     }
 
-    .eye.right {
-      left: 55%
+    @keyframes eyePulse {
+      0%, 100% { transform: translate(-50%, -50%) scaleY(1); }
+      45% { transform: translate(-50%, -50%) scaleY(.82); }
+      50% { transform: translate(-50%, -50%) scaleY(.22); }
+      55% { transform: translate(-50%, -50%) scaleY(.82); }
     }
 
-    .mouth {
-      width: 36%;
-      left: 35%;
-      top: 54%;
-      animation: mouth 3s ease-in-out infinite;
-      object-fit: cover
+    @keyframes mouthPulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); }
+      50% { transform: translate(-50%, -50%) scale(1.08); }
     }
 
     @keyframes float {
@@ -125,7 +139,7 @@
     }
 
     .monster.still,
-    .monster.still img {
+    .monster.still .feature-mark {
       animation: none !important
     }
 
@@ -261,16 +275,16 @@
 <body>
   <main class="app">
     <h1>🧵 ぬのモン</h1>
-    <p class="sub">STEP 11 修正版：二重表示・カメラ位置調整</p>
+    <p class="sub">STEP 12：写真そのまま認識・アニメーション</p>
 
     <section class="panel">
       <h2>デジタルモンスター</h2>
       <div class="stage">
         <div class="monster" id="monster">
-          <img class="body" id="digitalBody" src="body.png" alt="">
-          <img class="eye left" id="digitalLeft" src="eye_left.png" alt="">
-          <img class="eye right" id="digitalRight" src="eye_right.png" alt="">
-          <img class="mouth" id="digitalMouth" src="mouth.png" alt="">
+          <img class="photo-monster" id="digitalPhoto" src="body.png" alt="">
+          <div class="feature-mark eye-mark left-mark" id="digitalLeft"></div>
+          <div class="feature-mark eye-mark right-mark" id="digitalRight"></div>
+          <div class="feature-mark mouth-mark" id="digitalMouth"></div>
         </div>
       </div>
       <p class="help" id="displayName">新しいモンスター</p>
@@ -309,7 +323,7 @@
 
     <section class="panel">
       <h2>👀 顔パーツを登録</h2>
-      <p class="help">パーツを選んで、写真上の該当する場所をタップしてね。輪郭を認識すると胴体を切り抜き、タップした目や口も切り抜いてデジタル側に使うよ。</p>
+      <p class="help">パーツを選んで、写真上の該当する場所をタップしてね。写真は切り抜かずそのまま表示。目と口の位置を登録して、その場所に動くマーカーを重ねるよ。</p>
       <div class="part-buttons">
         <button data-part="left" class="active">左目</button>
         <button data-part="right">右目</button>
@@ -372,202 +386,58 @@
       $("partResult").textContent = Object.keys(points).map(k =>
         names[k] + "：" + (points[k] ? (partImages[k] ? "画像登録済み" : "位置登録済み") : "未登録")
       ).join(" ／ ");
-      $("save").disabled = !(points.left && points.right && points.mouth &&
-        partImages.left && partImages.right && partImages.mouth);
+      $("save").disabled = !(points.left && points.right && points.mouth);
     }
 
     function drawDigital() {
-      $("digitalBody").src = bodyImage || "body.png";
+      const img = $("digitalPhoto");
+      img.src = bodyImage || "body.png";
 
       const mapping = [
-        ["digitalLeft", "left", points.left, 25.5, 8],
-        ["digitalRight", "right", points.right, 25.5, 8],
-        ["digitalMouth", "mouth", points.mouth, 36, 9]
+        ["digitalLeft", points.left],
+        ["digitalRight", points.right],
+        ["digitalMouth", points.mouth]
       ];
 
-      mapping.forEach(([id, key, p, width, heightOffset]) => {
+      mapping.forEach(([id, p]) => {
         const el = $(id);
-        el.src = partImages[key] || ORIGINAL_IMAGES[key];
-
         if (!p) {
+          el.classList.remove("registered");
           el.style.left = "";
           el.style.top = "";
-          el.style.transform = "";
           return;
         }
-
-        // CSSアニメーションのtransformと競合しないよう、左上位置を計算する
-        el.style.left = `calc(${p.x * 100}% - ${width / 2}%)`;
-        el.style.top = `calc(${p.y * 100}% - ${heightOffset}%)`;
-        el.style.width = width + "%";
-        el.style.transform = "";
+        el.classList.add("registered");
+        el.style.left = (p.x * 100) + "%";
+        el.style.top = (p.y * 100) + "%";
       });
     }
 
-    function makeBodyImage(registeredPoints) {
-      if (!photo.complete || !photo.naturalWidth || !backgroundPoint || !bounds) return null;
+    function makePhotoMonster() {
+      if (!photo.complete || !photo.naturalWidth || !bounds) return null;
 
+      // 背景除去はせず、輪郭の外接矩形をそのまま写真として保存する
       const bw = bounds.maxX - bounds.minX;
       const bh = bounds.maxY - bounds.minY;
-      const padX = bw * 0.035;
-      const padY = bh * 0.035;
+      const padX = bw * 0.045;
+      const padY = bh * 0.045;
       const sx = Math.max(0, bounds.minX - padX);
       const sy = Math.max(0, bounds.minY - padY);
       const ex = Math.min(photo.naturalWidth, bounds.maxX + padX);
       const ey = Math.min(photo.naturalHeight, bounds.maxY + padY);
-      const cropW = Math.max(1, Math.round(ex - sx));
-      const cropH = Math.max(1, Math.round(ey - sy));
+      const cropW = Math.max(1, ex - sx);
+      const cropH = Math.max(1, ey - sy);
 
-      const maxSide = 720;
+      const maxSide = 700;
       const scale = Math.min(1, maxSide / Math.max(cropW, cropH));
       const canvas = document.createElement("canvas");
       canvas.width = Math.max(1, Math.round(cropW * scale));
       canvas.height = Math.max(1, Math.round(cropH * scale));
-
-      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      const ctx = canvas.getContext("2d");
       ctx.drawImage(photo, sx, sy, cropW, cropH, 0, 0, canvas.width, canvas.height);
-
-      const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const data = image.data;
-      const w = canvas.width, h = canvas.height, total = w * h;
-
-      // 撮影時に指定した背景色を基準に、外側につながる背景だけを透明化する
-      const bgX = Math.max(0, Math.min(photo.naturalWidth - 1, Math.round(backgroundPoint.x)));
-      const bgY = Math.max(0, Math.min(photo.naturalHeight - 1, Math.round(backgroundPoint.y)));
-      const bgCanvas = document.createElement("canvas");
-      bgCanvas.width = bgCanvas.height = 1;
-      const bgCtx = bgCanvas.getContext("2d", { willReadFrequently: true });
-      bgCtx.drawImage(photo, bgX, bgY, 1, 1, 0, 0, 1, 1);
-      const bg = bgCtx.getImageData(0, 0, 1, 1).data;
-
-      const startX = Math.max(0, Math.min(w - 1, Math.floor((backgroundPoint.x - sx) * scale)));
-      const startY = Math.max(0, Math.min(h - 1, Math.floor((backgroundPoint.y - sy) * scale)));
-      const start = startY * w + startX;
-      const queue = new Int32Array(total);
-      const visited = new Uint8Array(total);
-      let head = 0, tail = 0;
-
-      const isBackground = index => {
-        const i = index * 4;
-        const dr = data[i] - bg[0];
-        const dg = data[i + 1] - bg[1];
-        const db = data[i + 2] - bg[2];
-        return dr * dr + dg * dg + db * db <= 52 * 52 * 3;
-      };
-
-      if (isBackground(start)) {
-        queue[tail++] = start;
-        visited[start] = 1;
-      }
-
-      while (head < tail) {
-        const pos = queue[head++];
-        const x = pos % w;
-        const y = (pos / w) | 0;
-        data[pos * 4 + 3] = 0;
-
-        if (x > 0) {
-          const n = pos - 1;
-          if (!visited[n] && isBackground(n)) { visited[n] = 1; queue[tail++] = n; }
-        }
-        if (x < w - 1) {
-          const n = pos + 1;
-          if (!visited[n] && isBackground(n)) { visited[n] = 1; queue[tail++] = n; }
-        }
-        if (y > 0) {
-          const n = pos - w;
-          if (!visited[n] && isBackground(n)) { visited[n] = 1; queue[tail++] = n; }
-        }
-        if (y < h - 1) {
-          const n = pos + w;
-          if (!visited[n] && isBackground(n)) { visited[n] = 1; queue[tail++] = n; }
-        }
-      }
-
-      ctx.putImageData(image, 0, 0);
-
-      // 目と口は別画像として重ねるため、胴体画像側の同じ場所を透明にくり抜く
-      const cutouts = {
-        left: { w: 0.23, h: 0.22 },
-        right: { w: 0.23, h: 0.22 },
-        mouth: { w: 0.40, h: 0.30 }
-      };
-
-      Object.keys(cutouts).forEach(key => {
-        const point = registeredPoints && registeredPoints[key];
-        if (!point) return;
-        const size = cutouts[key];
-        const centerX = bounds.minX + point.x * (bounds.maxX - bounds.minX);
-        const centerY = bounds.minY + point.y * (bounds.maxY - bounds.minY);
-        const cutW = (bounds.maxX - bounds.minX) * size.w;
-        const cutH = (bounds.maxY - bounds.minY) * size.h;
-        const dx = (centerX - cutW / 2 - sx) * scale;
-        const dy = (centerY - cutH / 2 - sy) * scale;
-        ctx.clearRect(dx, dy, cutW * scale, cutH * scale);
-      });
-
-      return canvas.toDataURL("image/png");
+      return canvas.toDataURL("image/jpeg", 0.88);
     }
 
-    function makePartImage(part, point) {
-      if (!photo.complete || !photo.naturalWidth || !backgroundPoint || !bounds) return null;
-
-      const bw = bounds.maxX - bounds.minX;
-      const bh = bounds.maxY - bounds.minY;
-
-      // タップ位置を中心に、パーツごとの範囲を切り抜く
-      const ratios = {
-        left: { w: 0.23, h: 0.22 },
-        right: { w: 0.23, h: 0.22 },
-        mouth: { w: 0.40, h: 0.30 }
-      };
-      const size = ratios[part];
-      const cropW = bw * size.w;
-      const cropH = bh * size.h;
-      const centerX = bounds.minX + point.x * bw;
-      const centerY = bounds.minY + point.y * bh;
-
-      let sx = centerX - cropW / 2;
-      let sy = centerY - cropH / 2;
-      sx = Math.max(0, Math.min(photo.naturalWidth - cropW, sx));
-      sy = Math.max(0, Math.min(photo.naturalHeight - cropH, sy));
-
-      // 保存容量を抑えながらフェルトの質感を残す
-      const maxSide = 360;
-      const scale = Math.min(1, maxSide / Math.max(cropW, cropH));
-      const canvas = document.createElement("canvas");
-      canvas.width = Math.max(1, Math.round(cropW * scale));
-      canvas.height = Math.max(1, Math.round(cropH * scale));
-      const ctx = canvas.getContext("2d", { willReadFrequently: true });
-      ctx.drawImage(photo, sx, sy, cropW, cropH, 0, 0, canvas.width, canvas.height);
-
-      // 背景色に近い部分を透明化。フェルト本体の色や質感は残す
-      const bgX = Math.max(0, Math.min(photo.naturalWidth - 1, Math.round(backgroundPoint.x)));
-      const bgY = Math.max(0, Math.min(photo.naturalHeight - 1, Math.round(backgroundPoint.y)));
-      const bgCanvas = document.createElement("canvas");
-      bgCanvas.width = bgCanvas.height = 1;
-      const bgCtx = bgCanvas.getContext("2d", { willReadFrequently: true });
-      bgCtx.drawImage(photo, bgX, bgY, 1, 1, 0, 0, 1, 1);
-      const bg = bgCtx.getImageData(0, 0, 1, 1).data;
-      const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const pixels = image.data;
-
-      for (let i = 0; i < pixels.length; i += 4) {
-        const dr = pixels[i] - bg[0];
-        const dg = pixels[i + 1] - bg[1];
-        const db = pixels[i + 2] - bg[2];
-        const distance = Math.sqrt(dr * dr + dg * dg + db * db);
-
-        if (distance < 42) {
-          pixels[i + 3] = 0;
-        } else if (distance < 82) {
-          pixels[i + 3] = Math.round((distance - 42) / 40 * pixels[i + 3]);
-        }
-      }
-
-      ctx.putImageData(image, 0, 0);
-      return canvas.toDataURL("image/png");
-    }
     function resetParts() {
       points = { left: null, right: null, mouth: null };
       partImages = { left: null, right: null, mouth: null };
@@ -582,14 +452,10 @@
     }
     function applyParts() {
       if (!points.left || !points.right || !points.mouth) return;
-      if (!partImages.left || !partImages.right || !partImages.mouth) {
-        $("partStatus").textContent = "写真からパーツ画像を作れなかったよ。もう一度3か所を登録してね。";
-        return;
-      }
-      bodyImage = makeBodyImage(points);
+      bodyImage = makePhotoMonster();
       drawDigital();
       $("displayName").textContent = currentName || "新しいモンスター";
-      $("partStatus").textContent = "写真から切り抜いた3つのパーツを反映したよ！";
+      $("partStatus").textContent = "写真をそのまま表示して、目と口の位置を認識したよ！";
       $("saveStatus").textContent = "保存できるよ。名前を付けて保存してね。";
     }
     function stopTracks() {
@@ -764,12 +630,10 @@
         x: (x - b.minX) / (b.maxX - b.minX),
         y: (y - b.minY) / (b.maxY - b.minY)
       };
-      partImages[currentPart] = makePartImage(currentPart, points[currentPart]);
-
       if (points.left && points.right && points.mouth) {
-        bodyImage = makeBodyImage(points);
+        bodyImage = makePhotoMonster();
         drawDigital();
-        $("outlineResult").textContent = "胴体の顔パーツ部分をくり抜いたよ。デジタル側で二重にならないようにしたよ！";
+        $("outlineResult").textContent = "写真は切り抜かず、そのままデジタル側に反映したよ！";
       }
 
       drawMarkers(); updatePartResult();
@@ -809,7 +673,6 @@
         id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
         name,
         points: JSON.parse(JSON.stringify(points)),
-        images: JSON.parse(JSON.stringify(partImages)),
         bodyImage,
         savedAt: new Date().toISOString()
       };
@@ -828,18 +691,16 @@
       const entry = getSaved().find(item => item.id === id);
       if (!entry) return;
       points = JSON.parse(JSON.stringify(entry.points));
-      partImages = entry.images
-        ? JSON.parse(JSON.stringify(entry.images))
-        : { left: null, right: null, mouth: null };
+      partImages = { left: null, right: null, mouth: null };
       bodyImage = entry.bodyImage || null;
       currentName = entry.name;
       $("monsterName").value = entry.name;
       $("displayName").textContent = entry.name;
       drawDigital(); drawMarkers(); updatePartResult();
       $("apply").disabled = false;
-      $("saveStatus").textContent = entry.images
-        ? "「" + entry.name + "」のフェルト画像も呼び出したよ！"
-        : "「" + entry.name + "」を呼び出したよ。旧データなので画像は元のままだよ。";
+      $("saveStatus").textContent = bodyImage
+        ? "「" + entry.name + "」の写真と認識位置を呼び出したよ！"
+        : "「" + entry.name + "」の位置を呼び出したよ。";
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
     function deleteMonster(id) {
