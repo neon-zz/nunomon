@@ -74,89 +74,34 @@
       pointer-events: none
     }
 
-    .feature-mark {
-      position: absolute;
-      pointer-events: none;
-      opacity: 0;
-      transform: translate(-50%, -50%);
+    #cartoonMonster {
+      display: block;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      filter: drop-shadow(0 7px 5px rgba(0,0,0,.16));
     }
-
-    .feature-mark.registered { opacity: 1; }
-
-    .eye-mark {
-      width: 17%;
-      height: 13%;
-      border-radius: 50%;
-      background: #fff8ef;
-      border: 2px solid rgba(65, 48, 43, .35);
-      box-shadow: 0 2px 2px rgba(0,0,0,.18);
-      overflow: hidden;
-      animation: eyeBlink 3.5s ease-in-out infinite;
+    #cartoonBody { transition: fill .25s ease; }
+    .svg-eyelid {
+      transform-box: fill-box;
+      transform-origin: center bottom;
+      animation: svgBlink 4s ease-in-out infinite;
     }
-
-    .eye-mark::before {
-      content: "";
-      position: absolute;
-      width: 34%;
-      height: 58%;
-      left: 43%;
-      top: 17%;
-      border-radius: 50%;
-      background: #242126;
-      box-shadow: inset 2px 1px 0 rgba(255,255,255,.35);
-    }
-
-    .eye-mark::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      border-radius: 50%;
-      background: var(--felt-color, #a9cfca);
-      transform: scaleY(0);
+    #cartoonRightEye .svg-eyelid { animation-delay: .14s; }
+    #cartoonMouth .mouth-main {
+      transform-box: fill-box;
       transform-origin: center;
-      animation: eyelidClose 3.5s ease-in-out infinite;
+      animation: svgTalk 2.7s ease-in-out infinite;
     }
-
-    .right-mark { animation-delay: .12s; }
-    .right-mark::after { animation-delay: .12s; }
-
-    .mouth-mark {
-      width: 23%;
-      height: 15%;
-      border-radius: 18% 18% 48% 48%;
-      background: #9d1727;
-      border: 2px solid rgba(80, 30, 32, .25);
-      box-shadow: 0 2px 2px rgba(0,0,0,.16);
-      overflow: hidden;
-      animation: talk 2.4s ease-in-out infinite;
-    }
-
-    .mouth-mark::before {
-      content: "";
-      position: absolute;
-      left: 18%;
-      right: 18%;
-      bottom: 5%;
-      height: 32%;
-      border-radius: 50% 50% 45% 45%;
-      background: #f6b5a6;
-    }
-
-    @keyframes eyelidClose {
+    @keyframes svgBlink {
       0%, 43%, 49%, 100% { transform: scaleY(0); }
       46% { transform: scaleY(1); }
     }
-
-    @keyframes eyeBlink {
-      0%, 43%, 49%, 100% { transform: translate(-50%, -50%) scaleY(1); }
-      46% { transform: translate(-50%, -50%) scaleY(.9); }
+    @keyframes svgTalk {
+      0%, 25%, 100% { transform: translateY(0) scaleY(.72); }
+      52%, 72% { transform: translateY(2px) scaleY(1.08); }
     }
-
-    @keyframes talk {
-      0%, 22%, 100% { transform: translate(-50%, -50%) scaleY(.55); }
-      48%, 68% { transform: translate(-50%, -50%) scaleY(1.12); }
-    }
-
+    .monster.still #cartoonMonster * { animation: none !important; }
     @keyframes float {
       50% {
         transform: translateY(-8px) rotate(-1deg)
@@ -323,16 +268,46 @@
 <body>
   <main class="app">
     <h1>🧵 ぬのモン</h1>
-    <p class="sub">STEP 15：写真をイラスト風に変換</p>
+    <p class="sub">STEP 16：全身デフォルメイラスト</p>
 
     <section class="panel">
       <h2>デジタルモンスター</h2>
       <div class="stage">
         <div class="monster" id="monster">
-          <img class="photo-monster" id="digitalPhoto" src="body.png" alt="">
-          <div class="feature-mark eye-mark left-mark" id="digitalLeft"></div>
-          <div class="feature-mark eye-mark right-mark" id="digitalRight"></div>
-          <div class="feature-mark mouth-mark" id="digitalMouth"></div>
+          <svg id="cartoonMonster" viewBox="0 0 320 320" role="img" aria-label="ぬのモンのイラスト">
+            <defs>
+              <linearGradient id="bodyGradient" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#b8eafa"/>
+                <stop offset="1" stop-color="#78c7e2"/>
+              </linearGradient>
+              <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
+                <feGaussianBlur stdDeviation="3"/>
+              </filter>
+            </defs>
+            <ellipse cx="160" cy="278" rx="92" ry="12" fill="#000" opacity=".16" filter="url(#softShadow)"/>
+            <path id="cartoonBody" d="M160 24 C220 18 272 62 281 126 C310 138 306 177 280 187 C278 235 249 268 214 272 C196 300 174 300 157 282 C137 303 112 299 96 273 C57 266 35 232 38 187 C10 175 13 139 40 126 C49 65 99 22 160 24Z" fill="url(#bodyGradient)" stroke="#f8f0e5" stroke-width="7" stroke-linejoin="round"/>
+            <path d="M76 89 C91 55 124 42 157 42" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".42"/>
+            <path d="M66 222 Q80 240 94 246 M226 246 Q244 236 254 216" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".3"/>
+            <g id="cartoonLeftEye" transform="translate(112 139)">
+              <ellipse rx="29" ry="34" fill="#fff7eb" stroke="#d9c8b8" stroke-width="3"/>
+              <ellipse cy="3" rx="10" ry="18" fill="#382a2b"/>
+              <circle cx="-4" cy="-8" r="4" fill="#fff"/>
+              <path class="svg-eyelid" d="M-30 -2 Q0 -34 30 -2 L30 -25 L-30 -25Z" fill="#8ed2e6"/>
+            </g>
+            <g id="cartoonRightEye" transform="translate(208 139)">
+              <ellipse rx="29" ry="34" fill="#fff7eb" stroke="#d9c8b8" stroke-width="3"/>
+              <ellipse cy="3" rx="10" ry="18" fill="#382a2b"/>
+              <circle cx="-4" cy="-8" r="4" fill="#fff"/>
+              <path class="svg-eyelid" d="M-30 -2 Q0 -34 30 -2 L30 -25 L-30 -25Z" fill="#8ed2e6"/>
+            </g>
+            <ellipse cx="79" cy="190" rx="13" ry="7" fill="#f7aeb5" opacity=".7"/>
+            <ellipse cx="241" cy="190" rx="13" ry="7" fill="#f7aeb5" opacity=".7"/>
+            <g id="cartoonMouth" transform="translate(160 218)">
+              <path class="mouth-main" d="M-39 -17 Q-39 -26 -28 -26 L28 -26 Q39 -26 39 -15 L39 8 Q35 31 0 33 Q-35 31 -39 8Z" fill="#b52f43" stroke="#8f2638" stroke-width="3"/>
+              <path d="M-23 16 Q0 3 23 16 Q15 30 0 30 Q-15 30 -23 16Z" fill="#f5a8a8" class="mouth-main"/>
+            </g>
+            <path d="M52 105 Q40 92 31 106 M268 105 Q280 92 289 106" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".7"/>
+          </svg>
         </div>
       </div>
       <p class="help" id="displayName">新しいモンスター</p>
@@ -371,7 +346,7 @@
 
     <section class="panel">
       <h2>👀 顔パーツを登録</h2>
-      <p class="help">パーツを選んで、写真上の該当する場所をタップしてね。写真の色や形を残しながら少しイラスト風に変換するよ。目と口の位置を登録して、動く顔パーツを作るよ。</p>
+      <p class="help">パーツを選んで、写真上の該当する場所をタップしてね。撮影したモンスターの色と顔の配置を取り込んで、全身をかわいいイラストに変身させるよ。</p>
       <div class="part-buttons">
         <button data-part="left" class="active">左目</button>
         <button data-part="right">右目</button>
@@ -412,6 +387,7 @@
     let digitalPoints = { left: null, right: null, mouth: null };
     let partImages = { left: null, right: null, mouth: null };
     let bodyImage = null;
+    let bodyColor = "#91d4e8";
     let motion = true;
     let currentName = "";
 
@@ -439,39 +415,19 @@
     }
 
     function drawDigital() {
-      const img = $("digitalPhoto");
-      img.src = bodyImage || "body.png";
-      if (bodyImage) {
-        const ratioImage = new Image();
-        ratioImage.onload = () => {
-          $("monster").style.aspectRatio = `${ratioImage.naturalWidth} / ${ratioImage.naturalHeight}`;
-        };
-        ratioImage.src = bodyImage;
-      } else {
-        $("monster").style.aspectRatio = "921 / 936";
-      }
+      const body = $("cartoonBody");
+      body.setAttribute("fill", bodyColor || "#91d4e8");
 
-      const mapping = [
-        ["digitalLeft", digitalPoints.left],
-        ["digitalRight", digitalPoints.right],
-        ["digitalMouth", digitalPoints.mouth]
-      ];
+      const left = digitalPoints.left || { x: .34, y: .43 };
+      const right = digitalPoints.right || { x: .66, y: .43 };
+      const mouth = digitalPoints.mouth || { x: .50, y: .69 };
 
-      mapping.forEach(([id, p]) => {
-        const el = $(id);
-        if (!p) {
-          el.classList.remove("registered");
-          el.style.left = "";
-          el.style.top = "";
-          return;
-        }
-        el.classList.add("registered");
-        el.style.left = (p.x * 100) + "%";
-        el.style.top = (p.y * 100) + "%";
-        if (id === "digitalLeft" || id === "digitalRight") {
-          el.style.setProperty("--felt-color", p.feltColor || "#a9cfca");
-        }
-      });
+      $("cartoonLeftEye").setAttribute("transform",
+        `translate(${Math.round(30 + left.x * 260)} ${Math.round(20 + left.y * 270)})`);
+      $("cartoonRightEye").setAttribute("transform",
+        `translate(${Math.round(30 + right.x * 260)} ${Math.round(20 + right.y * 270)})`);
+      $("cartoonMouth").setAttribute("transform",
+        `translate(${Math.round(30 + mouth.x * 260)} ${Math.round(20 + mouth.y * 270)})`);
     }
 
     function getPhotoCrop() {
@@ -521,77 +477,22 @@
     }
 
     function makePhotoMonster() {
-      const crop = getPhotoCrop();
-      if (!crop) return null;
+      if (!photo.complete || !photo.naturalWidth || !bounds) return null;
 
-      const maxSide = 700;
-      const scale = Math.min(1, maxSide / Math.max(crop.width, crop.height));
-      const canvas = document.createElement("canvas");
-      canvas.width = Math.max(1, Math.round(crop.width * scale));
-      canvas.height = Math.max(1, Math.round(crop.height * scale));
-      const ctx = canvas.getContext("2d");
-      ctx.filter = "saturate(1.28) contrast(1.08) brightness(1.02)";
-      ctx.drawImage(
-        photo,
-        crop.sx, crop.sy, crop.width, crop.height,
-        0, 0, canvas.width, canvas.height
-      );
-      ctx.filter = "none";
+      const sample = document.createElement("canvas");
+      sample.width = sample.height = 1;
+      const ctx = sample.getContext("2d", { willReadFrequently: true });
+      const x = Math.round((bounds.minX + bounds.maxX) / 2);
+      const y = Math.round(bounds.minY + (bounds.maxY - bounds.minY) * .48);
+      ctx.drawImage(photo, x, y, 1, 1, 0, 0, 1, 1);
+      const pixel = ctx.getImageData(0, 0, 1, 1).data;
 
-      // 写真を少しだけイラスト風にする（色数を整理し、フェルト感は残す）
-      const frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const px = frame.data;
-      const levels = 7;
-      for (let i = 0; i < px.length; i += 4) {
-        for (let c = 0; c < 3; c++) {
-          px[i + c] = Math.round(px[i + c] / 255 * (levels - 1)) * (255 / (levels - 1));
-        }
-      }
-      ctx.putImageData(frame, 0, 0);
-
-      // 写真に写った元の目・口をフェルト色でなじませてから、イラストの顔パーツを重ねる
-      const featureSpecs = [
-        { key: "left", p: points.left, w: .23, h: .19, sampleY: -.105 },
-        { key: "right", p: points.right, w: .23, h: .19, sampleY: -.105 },
-        { key: "mouth", p: points.mouth, w: .31, h: .25, sampleY: -.14 }
-      ];
-      const bw = bounds.maxX - bounds.minX;
-      const bh = bounds.maxY - bounds.minY;
-
-      featureSpecs.forEach(spec => {
-        if (!spec.p) return;
-        const photoX = bounds.minX + spec.p.x * bw;
-        const photoY = bounds.minY + spec.p.y * bh;
-        const cx = (photoX - crop.sx) / crop.width * canvas.width;
-        const cy = (photoY - crop.sy) / crop.height * canvas.height;
-        const rx = spec.w * bw / crop.width * canvas.width / 2;
-        const ry = spec.h * bh / crop.height * canvas.height / 2;
-
-        // 周囲のフェルト色を複数点から平均する
-        const sampleX = Math.max(0, Math.min(canvas.width - 1, Math.round(cx)));
-        const sampleY = Math.max(0, Math.min(canvas.height - 1, Math.round(cy + spec.sampleY * bh / crop.height * canvas.height)));
-        const samples = [];
-        for (const [dx, dy] of [[-rx*.65,-ry*.8],[rx*.65,-ry*.8],[-rx*.8,0],[rx*.8,0],[0,-ry*1.1]]) {
-          const x = Math.max(0, Math.min(canvas.width - 1, Math.round(sampleX + dx)));
-          const y = Math.max(0, Math.min(canvas.height - 1, Math.round(sampleY + dy)));
-          const d = ctx.getImageData(x, y, 1, 1).data;
-          samples.push([d[0], d[1], d[2]]);
-        }
-        const color = samples.reduce((a, v) => [a[0]+v[0],a[1]+v[1],a[2]+v[2]],[0,0,0]).map(v=>Math.round(v/samples.length));
-        ctx.save();
-        ctx.fillStyle = `rgb(${color[0]},${color[1]},${color[2]})`;
-        ctx.beginPath();
-        ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI*2);
-        ctx.fill();
-        ctx.restore();
-
-        if (spec.key !== "mouth") {
-          const marker = $(spec.key === "left" ? "digitalLeft" : "digitalRight");
-          marker.style.setProperty("--felt-color", `rgb(${color[0]},${color[1]},${color[2]})`);
-        }
-      });
-
-      return canvas.toDataURL("image/jpeg", 0.94);
+      // 色味だけを引き継ぎ、写真そのものではなく全身を統一したイラストにする
+      const r = Math.round(pixel[0] * .72 + 150 * .28);
+      const g = Math.round(pixel[1] * .72 + 220 * .28);
+      const b = Math.round(pixel[2] * .72 + 238 * .28);
+      bodyColor = `rgb(${r}, ${g}, ${b})`;
+      return "illustration";
     }
 
     function resetParts() {
@@ -599,6 +500,7 @@
       digitalPoints = { left: null, right: null, mouth: null };
       partImages = { left: null, right: null, mouth: null };
       bodyImage = null;
+      bodyColor = "#91d4e8";
       drawDigital(); drawMarkers(); updatePartResult();
       $("apply").disabled = true;
       $("partStatus").textContent = "パーツ位置をリセットしたよ。";
@@ -613,7 +515,7 @@
       bodyImage = makePhotoMonster();
       drawDigital();
       $("displayName").textContent = currentName || "新しいモンスター";
-      $("partStatus").textContent = "写真をイラスト風に整えて、目と口をアニメーション用パーツにしたよ！";
+      $("partStatus").textContent = "モンスターをまるごとデフォルメイラストに変身させたよ！";
       $("saveStatus").textContent = "保存できるよ。名前を付けて保存してね。";
     }
     function stopTracks() {
@@ -773,6 +675,7 @@
       out.strokeStyle = "#ffe05a"; out.lineWidth = Math.max(3, w / 180);
       out.strokeRect(bounds.minX, bounds.minY, bounds.maxX - bounds.minX, bounds.maxY - bounds.minY);
       bodyImage = null;
+      bodyColor = "#91d4e8";
       drawDigital();
       $("clear").hidden = false;
       $("outlineResult").textContent = "輪郭を認識したよ！左目・右目・口を登録してね。目・口を登録した後、胴体画像から同じ部分を透明にくり抜くよ。";
@@ -832,6 +735,7 @@
         points: JSON.parse(JSON.stringify(points)),
         digitalPoints: JSON.parse(JSON.stringify(digitalPoints)),
         bodyImage,
+        bodyColor,
         savedAt: new Date().toISOString()
       };
       list.unshift(entry);
@@ -854,6 +758,7 @@
         : JSON.parse(JSON.stringify(entry.points));
       partImages = { left: null, right: null, mouth: null };
       bodyImage = entry.bodyImage || null;
+      bodyColor = entry.bodyColor || "#91d4e8";
       currentName = entry.name;
       $("monsterName").value = entry.name;
       $("displayName").textContent = entry.name;
