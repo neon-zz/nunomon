@@ -79,7 +79,7 @@
       width: 25.5%;
       top: 27%;
       animation: blink 4.8s infinite;
-      object-fit: contain
+      object-fit: cover
     }
 
     .eye.left {
@@ -95,7 +95,7 @@
       left: 35%;
       top: 54%;
       animation: mouth 3s ease-in-out infinite;
-      object-fit: contain
+      object-fit: cover
     }
 
     @keyframes float {
@@ -177,7 +177,7 @@
     video {
       width: 100%;
       height: 100%;
-      object-fit: contain
+      object-fit: cover
     }
 
     .photo-area {
@@ -261,7 +261,7 @@
 <body>
   <main class="app">
     <h1>🧵 ぬのモン</h1>
-    <p class="sub">STEP 11：胴体・フェルトパーツの切り抜き</p>
+    <p class="sub">STEP 11 修正版：二重表示・カメラ位置調整</p>
 
     <section class="panel">
       <h2>デジタルモンスター</h2>
@@ -404,7 +404,7 @@
       });
     }
 
-    function makeBodyImage() {
+    function makeBodyImage(registeredPoints) {
       if (!photo.complete || !photo.naturalWidth || !backgroundPoint || !bounds) return null;
 
       const bw = bounds.maxX - bounds.minX;
@@ -485,6 +485,27 @@
       }
 
       ctx.putImageData(image, 0, 0);
+
+      // 目と口は別画像として重ねるため、胴体画像側の同じ場所を透明にくり抜く
+      const cutouts = {
+        left: { w: 0.23, h: 0.22 },
+        right: { w: 0.23, h: 0.22 },
+        mouth: { w: 0.40, h: 0.30 }
+      };
+
+      Object.keys(cutouts).forEach(key => {
+        const point = registeredPoints && registeredPoints[key];
+        if (!point) return;
+        const size = cutouts[key];
+        const centerX = bounds.minX + point.x * (bounds.maxX - bounds.minX);
+        const centerY = bounds.minY + point.y * (bounds.maxY - bounds.minY);
+        const cutW = (bounds.maxX - bounds.minX) * size.w;
+        const cutH = (bounds.maxY - bounds.minY) * size.h;
+        const dx = (centerX - cutW / 2 - sx) * scale;
+        const dy = (centerY - cutH / 2 - sy) * scale;
+        ctx.clearRect(dx, dy, cutW * scale, cutH * scale);
+      });
+
       return canvas.toDataURL("image/png");
     }
 
@@ -565,6 +586,7 @@
         $("partStatus").textContent = "写真からパーツ画像を作れなかったよ。もう一度3か所を登録してね。";
         return;
       }
+      bodyImage = makeBodyImage(points);
       drawDigital();
       $("displayName").textContent = currentName || "新しいモンスター";
       $("partStatus").textContent = "写真から切り抜いた3つのパーツを反映したよ！";
@@ -609,8 +631,24 @@
     function shoot() {
       if (!stream || !video.videoWidth) return;
       const c = $("work"), ctx = c.getContext("2d");
-      c.width = video.videoWidth; c.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0, c.width, c.height);
+
+      // プレビューの object-fit: cover と同じ範囲を切り出して撮影する
+      const box = video.getBoundingClientRect();
+      const viewRatio = box.width / Math.max(1, box.height);
+      const videoRatio = video.videoWidth / video.videoHeight;
+      let sx = 0, sy = 0, sw = video.videoWidth, sh = video.videoHeight;
+
+      if (videoRatio > viewRatio) {
+        sw = video.videoHeight * viewRatio;
+        sx = (video.videoWidth - sw) / 2;
+      } else {
+        sh = video.videoWidth / viewRatio;
+        sy = (video.videoHeight - sh) / 2;
+      }
+
+      c.width = Math.round(sw);
+      c.height = Math.round(sh);
+      ctx.drawImage(video, sx, sy, sw, sh, 0, 0, c.width, c.height);
       photo.onload = () => {
         stopTracks(); video.pause(); video.srcObject = null; video.hidden = true;
         $("photoArea").hidden = false; $("photoHelp").hidden = false;
@@ -637,8 +675,10 @@
     }
     photo.addEventListener("click", e => {
       const r = photo.getBoundingClientRect();
-      const x = (e.clientX - r.left) / r.width * photo.naturalWidth;
-      const y = (e.clientY - r.top) / r.height * photo.naturalHeight;
+      const nx = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+      const ny = Math.max(0, Math.min(1, (e.clientY - r.top) / r.height));
+      const x = nx * photo.naturalWidth;
+      const y = ny * photo.naturalHeight;
       if (bounds) {
         if (x < bounds.minX || x > bounds.maxX || y < bounds.minY || y > bounds.maxY) {
           backgroundPoint = { x, y };
@@ -710,12 +750,10 @@
       }
       out.strokeStyle = "#ffe05a"; out.lineWidth = Math.max(3, w / 180);
       out.strokeRect(bounds.minX, bounds.minY, bounds.maxX - bounds.minX, bounds.maxY - bounds.minY);
-      bodyImage = makeBodyImage();
+      bodyImage = null;
       drawDigital();
       $("clear").hidden = false;
-      $("outlineResult").textContent = bodyImage
-        ? "輪郭を認識したよ！胴体も切り抜いたよ。左目・右目・口を登録してね。"
-        : "輪郭を認識したよ！左目・右目・口を登録してね。";
+      $("outlineResult").textContent = "輪郭を認識したよ！左目・右目・口を登録してね。目・口を登録した後、胴体画像から同じ部分を透明にくり抜くよ。";
     }
     function registerPart(x, y) {
       const b = bounds;
@@ -727,6 +765,13 @@
         y: (y - b.minY) / (b.maxY - b.minY)
       };
       partImages[currentPart] = makePartImage(currentPart, points[currentPart]);
+
+      if (points.left && points.right && points.mouth) {
+        bodyImage = makeBodyImage(points);
+        drawDigital();
+        $("outlineResult").textContent = "胴体の顔パーツ部分をくり抜いたよ。デジタル側で二重にならないようにしたよ！";
+      }
+
       drawMarkers(); updatePartResult();
       const names = { left: "左目", right: "右目", mouth: "口" };
       const next = { left: "right", right: "mouth", mouth: "left" };
