@@ -302,7 +302,7 @@
 <body>
   <main class="app">
     <h1>🧵 ぬのモン</h1>
-    <p class="sub">STEP 13：目のまばたき・口の開閉／撮影位置補正</p>
+    <p class="sub">STEP 14：目・口の位置補正</p>
 
     <section class="panel">
       <h2>デジタルモンスター</h2>
@@ -388,6 +388,7 @@
     let stream = null, backgroundPoint = null, bounds = null;
     let currentPart = "left";
     let points = { left: null, right: null, mouth: null };
+    let digitalPoints = { left: null, right: null, mouth: null };
     let partImages = { left: null, right: null, mouth: null };
     let bodyImage = null;
     let motion = true;
@@ -430,9 +431,9 @@
       }
 
       const mapping = [
-        ["digitalLeft", points.left],
-        ["digitalRight", points.right],
-        ["digitalMouth", points.mouth]
+        ["digitalLeft", digitalPoints.left],
+        ["digitalRight", digitalPoints.right],
+        ["digitalMouth", digitalPoints.mouth]
       ];
 
       mapping.forEach(([id, p]) => {
@@ -449,10 +450,9 @@
       });
     }
 
-    function makePhotoMonster() {
+    function getPhotoCrop() {
       if (!photo.complete || !photo.naturalWidth || !bounds) return null;
 
-      // 背景除去はせず、輪郭の外接矩形をそのまま写真として保存する
       const bw = bounds.maxX - bounds.minX;
       const bh = bounds.maxY - bounds.minY;
       const padX = bw * 0.045;
@@ -461,21 +461,62 @@
       const sy = Math.max(0, bounds.minY - padY);
       const ex = Math.min(photo.naturalWidth, bounds.maxX + padX);
       const ey = Math.min(photo.naturalHeight, bounds.maxY + padY);
-      const cropW = Math.max(1, ex - sx);
-      const cropH = Math.max(1, ey - sy);
+
+      return {
+        sx, sy,
+        width: Math.max(1, ex - sx),
+        height: Math.max(1, ey - sy)
+      };
+    }
+
+    function updateDigitalPoints() {
+      const crop = getPhotoCrop();
+      if (!crop) {
+        digitalPoints = { left: null, right: null, mouth: null };
+        return;
+      }
+
+      const bw = bounds.maxX - bounds.minX;
+      const bh = bounds.maxY - bounds.minY;
+
+      Object.keys(points).forEach(key => {
+        const p = points[key];
+        if (!p) {
+          digitalPoints[key] = null;
+          return;
+        }
+
+        // 元写真上のタップ位置を、デジタル表示用に切り出した写真の座標へ変換
+        const photoX = bounds.minX + p.x * bw;
+        const photoY = bounds.minY + p.y * bh;
+        digitalPoints[key] = {
+          x: (photoX - crop.sx) / crop.width,
+          y: (photoY - crop.sy) / crop.height
+        };
+      });
+    }
+
+    function makePhotoMonster() {
+      const crop = getPhotoCrop();
+      if (!crop) return null;
 
       const maxSide = 700;
-      const scale = Math.min(1, maxSide / Math.max(cropW, cropH));
+      const scale = Math.min(1, maxSide / Math.max(crop.width, crop.height));
       const canvas = document.createElement("canvas");
-      canvas.width = Math.max(1, Math.round(cropW * scale));
-      canvas.height = Math.max(1, Math.round(cropH * scale));
+      canvas.width = Math.max(1, Math.round(crop.width * scale));
+      canvas.height = Math.max(1, Math.round(crop.height * scale));
       const ctx = canvas.getContext("2d");
-      ctx.drawImage(photo, sx, sy, cropW, cropH, 0, 0, canvas.width, canvas.height);
-      return canvas.toDataURL("image/jpeg", 0.88);
+      ctx.drawImage(
+        photo,
+        crop.sx, crop.sy, crop.width, crop.height,
+        0, 0, canvas.width, canvas.height
+      );
+      return canvas.toDataURL("image/jpeg", 0.92);
     }
 
     function resetParts() {
       points = { left: null, right: null, mouth: null };
+      digitalPoints = { left: null, right: null, mouth: null };
       partImages = { left: null, right: null, mouth: null };
       bodyImage = null;
       drawDigital(); drawMarkers(); updatePartResult();
@@ -488,6 +529,7 @@
     }
     function applyParts() {
       if (!points.left || !points.right || !points.mouth) return;
+      updateDigitalPoints();
       bodyImage = makePhotoMonster();
       drawDigital();
       $("displayName").textContent = currentName || "新しいモンスター";
@@ -665,6 +707,7 @@
         y: (y - b.minY) / (b.maxY - b.minY)
       };
       if (points.left && points.right && points.mouth) {
+        updateDigitalPoints();
         bodyImage = makePhotoMonster();
         drawDigital();
         $("outlineResult").textContent = "写真は切り抜かず、そのままデジタル側に反映したよ！";
@@ -707,6 +750,7 @@
         id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
         name,
         points: JSON.parse(JSON.stringify(points)),
+        digitalPoints: JSON.parse(JSON.stringify(digitalPoints)),
         bodyImage,
         savedAt: new Date().toISOString()
       };
@@ -725,6 +769,9 @@
       const entry = getSaved().find(item => item.id === id);
       if (!entry) return;
       points = JSON.parse(JSON.stringify(entry.points));
+      digitalPoints = entry.digitalPoints
+        ? JSON.parse(JSON.stringify(entry.digitalPoints))
+        : JSON.parse(JSON.stringify(entry.points));
       partImages = { left: null, right: null, mouth: null };
       bodyImage = entry.bodyImage || null;
       currentName = entry.name;
