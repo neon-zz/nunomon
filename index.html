@@ -75,33 +75,38 @@
     }
 
     #cartoonMonster {
-      display: block;
-      width: 100%;
-      height: 100%;
-      overflow: visible;
-      filter: drop-shadow(0 7px 5px rgba(0,0,0,.16));
+      display:block;
+      width:100%;
+      height:100%;
+      overflow:visible;
+      filter: drop-shadow(0 8px 7px rgba(0,0,0,.17));
     }
-    #cartoonBody { transition: fill .25s ease; }
-    .svg-eyelid {
+    #wholeCharacter { transform-origin: 50% 55%; animation: plushBob 3.8s ease-in-out infinite; }
+    #cartoonBody { transition: fill .3s ease; }
+    .eyelid {
       transform-box: fill-box;
       transform-origin: center top;
-      animation: svgBlink 4.2s ease-in-out infinite;
+      animation: softBlink 4.6s ease-in-out infinite;
     }
-    #cartoonRightEye .svg-eyelid { animation-delay: .16s; }
+    #cartoonRightEye .eyelid { animation-delay: .18s; }
     #cartoonMouth .mouth-main {
       transform-box: fill-box;
       transform-origin: center;
-      animation: svgTalk 2.7s ease-in-out infinite;
+      animation: softTalk 3.1s ease-in-out infinite;
     }
-    @keyframes svgBlink {
-      0%, 43%, 49%, 100% { transform: scaleY(1); }
-      46% { transform: scaleY(1.45); }
+    @keyframes softBlink {
+      0%, 42%, 48%, 100% { transform: scaleY(1); }
+      45% { transform: scaleY(1.45); }
     }
-    @keyframes svgTalk {
-      0%, 25%, 100% { transform: scaleY(.78); }
-      52%, 72% { transform: scaleY(1.04); }
+    @keyframes softTalk {
+      0%, 22%, 100% { transform: scaleY(.9); }
+      50%, 68% { transform: scaleY(1.06); }
     }
-    .monster.still #cartoonMonster * { animation: none !important; }
+    @keyframes plushBob {
+      0%,100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-4px) rotate(-.6deg); }
+    }
+    .monster.still #cartoonMonster * { animation:none !important; }
     @keyframes float {
       50% {
         transform: translateY(-8px) rotate(-1deg)
@@ -268,45 +273,69 @@
 <body>
   <main class="app">
     <h1>🧵 ぬのモン</h1>
-    <p class="sub">STEP 17：イラストの表情調整</p>
+    <p class="sub">STEP 18：ふわふわ絵本風デザイン</p>
 
     <section class="panel">
       <h2>デジタルモンスター</h2>
       <div class="stage">
         <div class="monster" id="monster">
-          <svg id="cartoonMonster" viewBox="0 0 320 320" role="img" aria-label="ぬのモンのイラスト">
-            <defs>
-              <linearGradient id="bodyGradient" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stop-color="#b8eafa"/>
-                <stop offset="1" stop-color="#78c7e2"/>
-              </linearGradient>
-              <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
-                <feGaussianBlur stdDeviation="3"/>
-              </filter>
-            </defs>
-            <ellipse cx="160" cy="278" rx="92" ry="12" fill="#000" opacity=".16" filter="url(#softShadow)"/>
-            <path id="cartoonBody" d="M160 24 C220 18 272 62 281 126 C310 138 306 177 280 187 C278 235 249 268 214 272 C196 300 174 300 157 282 C137 303 112 299 96 273 C57 266 35 232 38 187 C10 175 13 139 40 126 C49 65 99 22 160 24Z" fill="url(#bodyGradient)" stroke="#f8f0e5" stroke-width="7" stroke-linejoin="round"/>
-            <path d="M76 89 C91 55 124 42 157 42" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".42"/>
-            <path d="M66 222 Q80 240 94 246 M226 246 Q244 236 254 216" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".3"/>
-            <g id="cartoonLeftEye" transform="translate(112 139)">
-              <ellipse rx="27" ry="31" fill="#fff7eb" stroke="#e6d7c7" stroke-width="3"/>
-              <ellipse cy="4" rx="9" ry="15" fill="#382a2b"/>
-              <circle cx="-4" cy="-8" r="4" fill="#fff"/>
-              <path class="svg-eyelid" d="M-29 -3 Q0 -27 29 -3 L29 -20 Q0 -31 -29 -20Z" fill="#8ed2e6" stroke="#78c4dc" stroke-width="1.5"/>
-            </g>
-            <g id="cartoonRightEye" transform="translate(208 139)">
-              <ellipse rx="27" ry="31" fill="#fff7eb" stroke="#e6d7c7" stroke-width="3"/>
-              <ellipse cy="4" rx="9" ry="15" fill="#382a2b"/>
-              <circle cx="-4" cy="-8" r="4" fill="#fff"/>
-              <path class="svg-eyelid" d="M-29 -3 Q0 -27 29 -3 L29 -20 Q0 -31 -29 -20Z" fill="#8ed2e6" stroke="#78c4dc" stroke-width="1.5"/>
-            </g>
-            <ellipse cx="79" cy="190" rx="13" ry="7" fill="#f7aeb5" opacity=".7"/>
-            <ellipse cx="241" cy="190" rx="13" ry="7" fill="#f7aeb5" opacity=".7"/>
-            <g id="cartoonMouth" transform="translate(160 218)">
-              <path class="mouth-main" d="M-34 -13 Q-34 -22 -24 -22 L24 -22 Q34 -22 34 -12 L34 5 Q30 27 0 29 Q-30 27 -34 5Z" fill="#c94b60" stroke="#a63b50" stroke-width="2.5"/>
-              <path d="M-20 14 Q0 5 20 14 Q13 26 0 26 Q-13 26 -20 14Z" fill="#f6b1b4"/>
-            </g>
-          </svg>
+          <svg id="cartoonMonster" viewBox="0 0 360 360" role="img" aria-label="ぬのモン">
+  <defs>
+    <radialGradient id="feltBlue" cx="36%" cy="25%" r="82%">
+      <stop offset="0" stop-color="#91dcf4"/>
+      <stop offset=".72" stop-color="#62c2e3"/>
+      <stop offset="1" stop-color="#4eadd2"/>
+    </radialGradient>
+    <filter id="feltTexture" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency=".72" numOctaves="2" seed="8" result="noise"/>
+      <feColorMatrix in="noise" type="saturate" values="0" result="mono"/>
+      <feComponentTransfer in="mono" result="grain">
+        <feFuncA type="table" tableValues="0 .10"/>
+      </feComponentTransfer>
+      <feBlend in="SourceGraphic" in2="grain" mode="soft-light"/>
+    </filter>
+    <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="5"/>
+    </filter>
+  </defs>
+  <ellipse cx="180" cy="326" rx="105" ry="13" fill="#000" opacity=".16" filter="url(#softShadow)"/>
+  <g id="wholeCharacter">
+    <g id="bodyGroup" filter="url(#feltTexture)">
+      <path id="cartoonBody" d="M180 18
+        C245 18 292 63 300 126
+        C326 136 338 157 329 181
+        C324 199 311 207 296 211
+        C297 267 265 304 220 310
+        C208 333 184 339 163 322
+        C143 340 116 333 103 310
+        C57 302 28 267 31 211
+        C8 202 -3 181 5 157
+        C12 137 27 127 48 124
+        C57 62 111 18 180 18Z"
+        fill="url(#feltBlue)" stroke="#f8eee2" stroke-width="8" stroke-linejoin="round"/>
+      <path d="M76 92 C93 53 128 36 166 36" fill="none" stroke="#d5f4fb" stroke-width="7" stroke-linecap="round" opacity=".48"/>
+      <path d="M62 248 Q78 271 101 280 M260 280 Q284 264 294 241" fill="none" stroke="#d5f4fb" stroke-width="5" stroke-linecap="round" opacity=".25"/>
+    </g>
+    <g id="cartoonLeftEye" transform="translate(126 151)">
+      <ellipse cy="8" rx="31" ry="37" fill="#fff8ed"/>
+      <path class="eyelid" d="M-31 4 Q0 -29 31 4 L31 -22 Q0 -42 -31 -22Z" fill="#62c2e3"/>
+      <ellipse cy="13" rx="11" ry="20" fill="#382b2b"/>
+      <circle cx="-5" cy="1" r="5" fill="#fff"/>
+    </g>
+    <g id="cartoonRightEye" transform="translate(234 151)">
+      <ellipse cy="8" rx="31" ry="37" fill="#fff8ed"/>
+      <path class="eyelid" d="M-31 4 Q0 -29 31 4 L31 -22 Q0 -42 -31 -22Z" fill="#62c2e3"/>
+      <ellipse cy="13" rx="11" ry="20" fill="#382b2b"/>
+      <circle cx="-5" cy="1" r="5" fill="#fff"/>
+    </g>
+    <ellipse cx="82" cy="221" rx="18" ry="11" fill="#f5a6b8" opacity=".9"/>
+    <ellipse cx="278" cy="221" rx="18" ry="11" fill="#f5a6b8" opacity=".9"/>
+    <g id="cartoonMouth" transform="translate(180 250)">
+      <path class="mouth-main" d="M-43 -17 Q-43 -27 -31 -27 L31 -27 Q43 -27 43 -16 L43 8 Q39 39 0 42 Q-39 39 -43 8Z" fill="#bf344b" stroke="#a72d43" stroke-width="3"/>
+      <path d="M-27 19 Q0 3 27 19 Q18 37 0 37 Q-18 37 -27 19Z" fill="#f5a1ad"/>
+    </g>
+  </g>
+</svg>
         </div>
       </div>
       <p class="help" id="displayName">新しいモンスター</p>
@@ -422,11 +451,11 @@
       const mouth = digitalPoints.mouth || { x: .50, y: .69 };
 
       $("cartoonLeftEye").setAttribute("transform",
-        `translate(${Math.round(30 + left.x * 260)} ${Math.round(20 + left.y * 270)})`);
+        `translate(${Math.round(70 + left.x * 112)} ${Math.round(92 + left.y * 118)})`);
       $("cartoonRightEye").setAttribute("transform",
-        `translate(${Math.round(30 + right.x * 260)} ${Math.round(20 + right.y * 270)})`);
+        `translate(${Math.round(178 + right.x * 112)} ${Math.round(92 + right.y * 118)})`);
       $("cartoonMouth").setAttribute("transform",
-        `translate(${Math.round(30 + mouth.x * 260)} ${Math.round(20 + mouth.y * 270)})`);
+        `translate(${Math.round(110 + mouth.x * 140)} ${Math.round(195 + mouth.y * 105)})`);
     }
 
     function getPhotoCrop() {
