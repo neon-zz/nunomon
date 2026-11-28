@@ -84,22 +84,22 @@
     #cartoonBody { transition: fill .25s ease; }
     .svg-eyelid {
       transform-box: fill-box;
-      transform-origin: center bottom;
-      animation: svgBlink 4s ease-in-out infinite;
+      transform-origin: center top;
+      animation: svgBlink 4.2s ease-in-out infinite;
     }
-    #cartoonRightEye .svg-eyelid { animation-delay: .14s; }
+    #cartoonRightEye .svg-eyelid { animation-delay: .16s; }
     #cartoonMouth .mouth-main {
       transform-box: fill-box;
       transform-origin: center;
       animation: svgTalk 2.7s ease-in-out infinite;
     }
     @keyframes svgBlink {
-      0%, 43%, 49%, 100% { transform: scaleY(0); }
-      46% { transform: scaleY(1); }
+      0%, 43%, 49%, 100% { transform: scaleY(1); }
+      46% { transform: scaleY(1.45); }
     }
     @keyframes svgTalk {
-      0%, 25%, 100% { transform: translateY(0) scaleY(.72); }
-      52%, 72% { transform: translateY(2px) scaleY(1.08); }
+      0%, 25%, 100% { transform: scaleY(.78); }
+      52%, 72% { transform: scaleY(1.04); }
     }
     .monster.still #cartoonMonster * { animation: none !important; }
     @keyframes float {
@@ -268,7 +268,7 @@
 <body>
   <main class="app">
     <h1>🧵 ぬのモン</h1>
-    <p class="sub">STEP 16：全身デフォルメイラスト</p>
+    <p class="sub">STEP 17：イラストの表情調整</p>
 
     <section class="panel">
       <h2>デジタルモンスター</h2>
@@ -289,24 +289,23 @@
             <path d="M76 89 C91 55 124 42 157 42" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".42"/>
             <path d="M66 222 Q80 240 94 246 M226 246 Q244 236 254 216" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".3"/>
             <g id="cartoonLeftEye" transform="translate(112 139)">
-              <ellipse rx="29" ry="34" fill="#fff7eb" stroke="#d9c8b8" stroke-width="3"/>
-              <ellipse cy="3" rx="10" ry="18" fill="#382a2b"/>
+              <ellipse rx="27" ry="31" fill="#fff7eb" stroke="#e6d7c7" stroke-width="3"/>
+              <ellipse cy="4" rx="9" ry="15" fill="#382a2b"/>
               <circle cx="-4" cy="-8" r="4" fill="#fff"/>
-              <path class="svg-eyelid" d="M-30 -2 Q0 -34 30 -2 L30 -25 L-30 -25Z" fill="#8ed2e6"/>
+              <path class="svg-eyelid" d="M-29 -3 Q0 -27 29 -3 L29 -20 Q0 -31 -29 -20Z" fill="#8ed2e6" stroke="#78c4dc" stroke-width="1.5"/>
             </g>
             <g id="cartoonRightEye" transform="translate(208 139)">
-              <ellipse rx="29" ry="34" fill="#fff7eb" stroke="#d9c8b8" stroke-width="3"/>
-              <ellipse cy="3" rx="10" ry="18" fill="#382a2b"/>
+              <ellipse rx="27" ry="31" fill="#fff7eb" stroke="#e6d7c7" stroke-width="3"/>
+              <ellipse cy="4" rx="9" ry="15" fill="#382a2b"/>
               <circle cx="-4" cy="-8" r="4" fill="#fff"/>
-              <path class="svg-eyelid" d="M-30 -2 Q0 -34 30 -2 L30 -25 L-30 -25Z" fill="#8ed2e6"/>
+              <path class="svg-eyelid" d="M-29 -3 Q0 -27 29 -3 L29 -20 Q0 -31 -29 -20Z" fill="#8ed2e6" stroke="#78c4dc" stroke-width="1.5"/>
             </g>
             <ellipse cx="79" cy="190" rx="13" ry="7" fill="#f7aeb5" opacity=".7"/>
             <ellipse cx="241" cy="190" rx="13" ry="7" fill="#f7aeb5" opacity=".7"/>
             <g id="cartoonMouth" transform="translate(160 218)">
-              <path class="mouth-main" d="M-39 -17 Q-39 -26 -28 -26 L28 -26 Q39 -26 39 -15 L39 8 Q35 31 0 33 Q-35 31 -39 8Z" fill="#b52f43" stroke="#8f2638" stroke-width="3"/>
-              <path d="M-23 16 Q0 3 23 16 Q15 30 0 30 Q-15 30 -23 16Z" fill="#f5a8a8" class="mouth-main"/>
+              <path class="mouth-main" d="M-34 -13 Q-34 -22 -24 -22 L24 -22 Q34 -22 34 -12 L34 5 Q30 27 0 29 Q-30 27 -34 5Z" fill="#c94b60" stroke="#a63b50" stroke-width="2.5"/>
+              <path d="M-20 14 Q0 5 20 14 Q13 26 0 26 Q-13 26 -20 14Z" fill="#f6b1b4"/>
             </g>
-            <path d="M52 105 Q40 92 31 106 M268 105 Q280 92 289 106" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".7"/>
           </svg>
         </div>
       </div>
